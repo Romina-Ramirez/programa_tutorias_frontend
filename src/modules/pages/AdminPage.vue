@@ -18,22 +18,26 @@
 
       <template v-else>
         <div v-if="tutors.length" class="table-head">
-          <div class="th">Nombre</div>
-          <div class="th">Apellido</div>
+          <div class="th">Cédula</div>
+          <div class="th">Nombres</div>
+          <div class="th">Apellidos</div>
           <div class="th">Email</div>
           <div class="th">Teléfono</div>
           <div class="th">Carrera</div>
+          <div class="th">Horario</div>
           <div class="th"></div>
         </div>
 
         <article v-for="t in tutors" :key="t.id" class="tutor-item">
           <div class="card-table">
+            <input class="cell-input" type="text" disabled :value="t.cedula" placeholder="Cédula" />
+
             <input
               class="cell-input"
               type="text"
               :disabled="editingId !== t.id || busy.updateTutorId === t.id"
               v-model.trim="editMap[t.id].nombre"
-              placeholder="Nombre"
+              placeholder="Nombres"
             />
 
             <input
@@ -41,7 +45,7 @@
               type="text"
               :disabled="editingId !== t.id || busy.updateTutorId === t.id"
               v-model.trim="editMap[t.id].apellido"
-              placeholder="Apellido"
+              placeholder="Apellidos"
             />
 
             <input class="cell-input" type="email" disabled :value="t.email" />
@@ -62,6 +66,14 @@
               :disabled="editingId !== t.id || busy.updateTutorId === t.id"
               v-model.trim="editMap[t.id].carrera"
               placeholder="Carrera"
+            />
+
+            <input
+              class="cell-input"
+              type="text"
+              :disabled="editingId !== t.id || busy.updateTutorId === t.id"
+              v-model.trim="editMap[t.id].horario"
+              placeholder="Horario disponible"
             />
 
             <button
@@ -149,14 +161,21 @@
           <input
             class="modal-input"
             type="text"
-            placeholder="Nombre"
+            placeholder="Cédula"
+            v-model.trim="addTutorForm.cedula"
+            :disabled="busy.addTutor"
+          />
+          <input
+            class="modal-input"
+            type="text"
+            placeholder="Nombres"
             v-model.trim="addTutorForm.nombre"
             :disabled="busy.addTutor"
           />
           <input
             class="modal-input"
             type="text"
-            placeholder="Apellido"
+            placeholder="Apellidos"
             v-model.trim="addTutorForm.apellido"
             :disabled="busy.addTutor"
           />
@@ -431,6 +450,15 @@
             v-model.trim="courseForm.materia"
             :disabled="busy.saveCourse"
           />
+          <input
+            class="modal-input"
+            type="number"
+            placeholder="Cupo máximo"
+            inputmode="numeric"
+            v-model.number="courseForm.cupo"
+            :disabled="busy.saveCourse"
+            min="1"
+          />
 
           <p v-if="courseFormError" class="modal-error">{{ courseFormError }}</p>
 
@@ -574,6 +602,7 @@ function displayToIso(display) {
 
 function mapTutorDto(dto) {
   const id = pick(dto, ['id', 'userId', 'tutorId'], null)
+  const cedula = pick(dto, ['idCard', 'cedula'], '')
   const nombre = pick(dto, ['name', 'nombre'], pick(dto?.user, ['name'], ''))
   const apellido = pick(dto, ['lastName', 'apellido'], pick(dto?.user, ['lastName'], ''))
   const email = pick(dto, ['email'], pick(dto?.user, ['email'], ''))
@@ -581,7 +610,17 @@ function mapTutorDto(dto) {
   const carrera = pick(dto, ['career', 'carrera'], '')
   const horario = pick(dto, ['availableSchedule', 'horario'], '')
   const activoRaw = pick(dto, ['isActive', 'active', 'activo'], false)
-  return { id, nombre, apellido, email, telefono, carrera, horario, activo: Boolean(activoRaw) }
+  return {
+    id,
+    cedula,
+    nombre,
+    apellido,
+    email,
+    telefono,
+    carrera,
+    horario,
+    activo: Boolean(activoRaw),
+  }
 }
 
 function mapCourseDto(dto) {
@@ -593,6 +632,7 @@ function mapCourseDto(dto) {
     horario: pick(dto, ['schedule', 'horario'], ''),
     fechaInicio: toDisplayDate(pick(dto, ['startDate', 'fechaInicio'], '')),
     fechaFin: toDisplayDate(pick(dto, ['endDate', 'fechaFin'], '')),
+    cupo: pick(dto, ['quota', 'cupo'], null),
   }
 }
 
@@ -631,6 +671,7 @@ function hydrateEditMap(list) {
       apellido: t.apellido,
       telefono: t.telefono,
       carrera: t.carrera,
+      horario: t.horario || '',
     }
     tutorErrors[t.id] = ''
   }
@@ -650,6 +691,7 @@ async function toggleEdit(t) {
       apellido: t.apellido,
       telefono: t.telefono,
       carrera: t.carrera,
+      horario: t.horario || '',
     }
     return
   }
@@ -659,6 +701,7 @@ async function toggleEdit(t) {
   const apellido = String(next.apellido ?? '').trim()
   const telefono = sanitizeDigits(next.telefono).slice(0, 10)
   const carrera = String(next.carrera ?? '').trim()
+  const horario = String(next.horario ?? '').trim()
 
   if (!nombre || !apellido || !carrera || telefono.length !== 10) {
     tutorErrors[t.id] = 'Debe completar todos los campos y el teléfono debe tener 10 dígitos.'
@@ -667,7 +710,13 @@ async function toggleEdit(t) {
 
   try {
     busy.updateTutorId = t.id
-    const payload = { name: nombre, lastName: apellido, phone: telefono, career: carrera }
+    const payload = {
+      name: nombre,
+      lastName: apellido,
+      phone: telefono,
+      career: carrera,
+      availableSchedule: horario,
+    }
     const updatedDto = await updateTutorApi(adminUserId.value, t.id, payload)
     const updated = mapTutorDto(updatedDto)
     const idx = tutors.value.findIndex((x) => x.id === t.id)
@@ -697,6 +746,7 @@ const addTutorOpen = ref(false)
 const addTutorError = ref('')
 const addTutorForm = reactive({
   email: '',
+  cedula: '',
   nombre: '',
   apellido: '',
   telefono: '',
@@ -707,6 +757,7 @@ const addTutorForm = reactive({
 function openAddTutor() {
   addTutorError.value = ''
   addTutorForm.email = ''
+  addTutorForm.cedula = ''
   addTutorForm.nombre = ''
   addTutorForm.apellido = ''
   addTutorForm.telefono = ''
@@ -730,13 +781,14 @@ async function addTutor() {
   const email = String(addTutorForm.email ?? '')
     .trim()
     .toLowerCase()
+  const cedula = String(addTutorForm.cedula ?? '').trim()
   const nombre = String(addTutorForm.nombre ?? '').trim()
   const apellido = String(addTutorForm.apellido ?? '').trim()
   const telefono = sanitizeDigits(addTutorForm.telefono).slice(0, 10)
   const carrera = String(addTutorForm.carrera ?? '').trim()
   const horario = String(addTutorForm.horario ?? '').trim()
 
-  if (!email || !nombre || !apellido || !telefono || !carrera || !horario) {
+  if (!email || !cedula || !nombre || !apellido || !telefono || !carrera || !horario) {
     addTutorError.value = 'Debe completar todos los campos.'
     return
   }
@@ -753,6 +805,7 @@ async function addTutor() {
     busy.addTutor = true
     const payload = {
       email,
+      idCard: cedula,
       name: nombre,
       lastName: apellido,
       phone: telefono,
@@ -889,6 +942,7 @@ const courseForm = reactive({
   fechaFinIso: '',
   horario: '',
   materia: '',
+  cupo: null,
 })
 
 function openCourseForm(mode, course = null) {
@@ -902,6 +956,7 @@ function openCourseForm(mode, course = null) {
   courseForm.fechaFinIso = displayToIso(course?.fechaFin)
   courseForm.horario = course?.horario ?? ''
   courseForm.materia = course?.materia ?? ''
+  courseForm.cupo = course?.cupo ?? null
 
   courseFormOpen.value = true
 }
@@ -927,8 +982,19 @@ async function saveCourse() {
   const horario = String(courseForm.horario ?? '').trim()
   const materia = String(courseForm.materia ?? '').trim()
 
-  if (!nombre || !courseForm.fechaInicioIso || !courseForm.fechaFinIso || !horario || !materia) {
-    courseFormError.value = 'Debe completar nombre, materia, fechas y horario.'
+  if (
+    !nombre ||
+    !courseForm.fechaInicioIso ||
+    !courseForm.fechaFinIso ||
+    !horario ||
+    !materia ||
+    !courseForm.cupo
+  ) {
+    courseFormError.value = 'Debe completar nombre, materia, fechas, horario y cupo.'
+    return
+  }
+  if (courseForm.cupo < 1) {
+    courseFormError.value = 'El cupo debe ser al menos 1.'
     return
   }
 
@@ -940,6 +1006,7 @@ async function saveCourse() {
     subject: materia,
     startDate: courseForm.fechaInicioIso,
     endDate: courseForm.fechaFinIso,
+    quota: courseForm.cupo,
   }
 
   try {
@@ -1089,172 +1156,174 @@ watch(selectedTutorId, () => {
 </script>
 
 <style scoped>
+/* Grid específico para tutores (8 columnas) */
 .table-head {
-  grid-template-columns: 1fr 1fr 1.2fr 0.6fr 1fr 44px;
+  grid-template-columns: 120px 1fr 1fr 1.2fr 100px 1fr 1fr 50px;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #ececec;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.th {
+  font-weight: 700;
+  font-size: 12px;
+  color: #444;
 }
 
 .tutor-item {
-  margin-bottom: 22px;
+  margin: 0 0 12px;
 }
 
 .card-table {
-  grid-template-columns: 1fr 1fr 1.2fr 0.6fr 1fr 44px;
-}
-
-.chev-btn {
-  width: 40px;
-  height: 36px;
+  grid-template-columns: 120px 1fr 1fr 1.2fr 100px 1fr 1fr 50px;
+  gap: 12px;
   border-radius: 12px;
-  border: 0;
-  cursor: pointer;
-  background: rgba(0, 0, 0, 0.04);
-  font-size: 18px;
-  font-weight: 900;
-  color: rgba(0, 0, 0, 0.55);
+  padding: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-.chev-btn:hover {
-  background: rgba(0, 0, 0, 0.08);
+.cell-input {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
 }
 
+.cell-input:disabled {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Acciones específicas */
 .actions-row {
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
 }
 
-.btn-pill:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
+/* Modal específicos */
 .modal-textarea {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 10px 12px;
-  outline: none;
-  background: #fff;
-  box-sizing: border-box;
-  resize: none;
-}
-.modal-textarea:focus {
-  border: 1px solid rgba(27, 79, 120, 0.75);
-  box-shadow: 0 0 0 3px rgba(27, 79, 120, 0.15);
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  resize: vertical;
+  min-height: 80px;
 }
 
 .modal-actions {
   display: flex;
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .modal-courses {
-  width: min(980px, 100%);
-  background: #d9d9d9;
-  padding: 18px 18px 22px;
-  max-height: calc(100vh - 140px);
+  width: 100%;
+  max-width: 900px;
+  background: #e8e8e8;
+  padding: 20px;
+  max-height: calc(100vh - 100px);
   display: flex;
   flex-direction: column;
+  border-radius: 16px;
 }
 
+/* Cursos dentro del modal */
 .courses-head {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 10px;
-  padding: 6px 6px 12px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 14px;
 }
 
 .courses-head-title {
-  font-weight: 900;
+  font-weight: 700;
+  font-size: 17px;
   text-align: left;
 }
 
 .courses-head-sub {
-  font-weight: 700;
-  text-align: left;
-  margin-top: 2px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #555;
 }
 
 .courses-scroll {
-  padding: 0 6px 6px;
+  padding: 0 4px;
   overflow-y: auto;
-  max-height: 520px;
-}
-
-.courses-scroll::-webkit-scrollbar {
-  width: 10px;
-}
-.courses-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.22);
-  border-radius: 10px;
-}
-.courses-scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.45);
-  border-radius: 10px;
+  flex: 1;
 }
 
 .course-card {
-  width: min(860px, 100%);
-  margin: 14px auto;
   background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 18px 20px 16px;
-  box-sizing: border-box;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.course-title {
+  font-weight: 800;
+  text-align: center;
+  font-size: 15px;
+  margin-bottom: 12px;
 }
 
 .course-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 .course-info {
   text-align: left;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-.course-title {
-  font-weight: 900;
-  text-align: center;
-  margin-bottom: 10px;
+.course-info .b {
+  font-weight: 700;
 }
 
 .course-actions {
   display: flex;
   justify-content: center;
-  gap: 18px;
+  gap: 12px;
   margin-top: 14px;
 }
 
-.b {
-  font-weight: 800;
+/* Modal curso formulario */
+.modal-course-form {
+  width: 100%;
+  max-width: 600px;
+  padding: 24px;
+  border-radius: 16px;
 }
 
-.modal-course-form {
-  width: min(900px, 100%);
-  padding: 26px 26px 22px;
-}
 .modal-wide-title2 {
-  font-weight: 900;
+  font-weight: 800;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  font-size: 17px;
 }
 
 .modal-wide-subtitle {
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
-  margin: 6px 0 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: #555;
 }
 
-.modal-body-wide {
-  padding-top: 6px;
-}
-
+/* Modal reporte */
 .modal-report {
-  width: min(980px, 100%);
-  padding: 22px 22px 18px;
+  width: 100%;
+  max-width: 900px;
+  padding: 24px;
+  border-radius: 16px;
 }
 
 .report-head {
@@ -1262,7 +1331,7 @@ watch(selectedTutorId, () => {
   grid-template-columns: 1fr 1fr;
   gap: 18px;
   align-items: start;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .report-left {
@@ -1270,14 +1339,14 @@ watch(selectedTutorId, () => {
 }
 
 .report-title {
-  font-weight: 900;
-  margin-bottom: 6px;
-  text-align: left;
+  font-weight: 800;
+  margin-bottom: 8px;
+  font-size: 15px;
 }
 
 .report-meta {
-  margin: 2px 0;
-  text-align: left;
+  margin: 4px 0;
+  font-size: 13px;
 }
 
 .report-center {
@@ -1285,55 +1354,108 @@ watch(selectedTutorId, () => {
 }
 
 .report-center-title {
-  font-weight: 900;
-  margin-bottom: 8px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  font-size: 15px;
 }
 
 .report-course {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
 }
 
 .report-select {
   height: 34px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  border: 1px solid #ddd;
   padding: 0 10px;
-  outline: none;
   background: #fff;
+  font-size: 13px;
 }
 
 .report-list {
-  max-height: 420px;
+  max-height: 380px;
   overflow: auto;
   padding-right: 6px;
 }
 
 .report-item {
-  padding: 10px 0 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
 }
 
 .report-created {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-align: left;
+  font-size: 12px;
+  color: #666;
 }
 
 .report-text {
-  line-height: 1.45;
+  line-height: 1.5;
   text-align: justify;
-  margin-bottom: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
 }
 
 .report-mins {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #004671;
 }
 
-.divider {
-  height: 1px;
-  background: rgba(0, 0, 0, 0.12);
-  margin: 10px 0 0;
+/* Responsive específico */
+@media (max-width: 900px) {
+  .table-head {
+    display: none;
+  }
+
+  .card-table {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .cell-input {
+    width: 100%;
+    text-align: left;
+  }
+
+  .chev-btn {
+    justify-self: end;
+  }
+
+  .actions-row {
+    width: 100%;
+    justify-content: stretch;
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+  }
+
+  .btn-pill {
+    flex: 1;
+  }
+
+  .modal-courses {
+    max-height: calc(100vh - 60px);
+  }
+
+  .course-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-head {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .shell {
+    padding: 12px;
+  }
 }
 </style>

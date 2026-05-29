@@ -1,6 +1,6 @@
 <template>
   <section class="forum">
-    <div v-if="isTutor" class="toolbar">
+    <div v-if="isTutor && !isInactive" class="toolbar">
       <button
         v-if="!addingForum"
         class="btn-add"
@@ -12,6 +12,15 @@
       </button>
 
       <div v-else class="composer-card">
+        <div class="composer-type">
+          <label for="forum-type">Tipo:</label>
+          <select id="forum-type" v-model="newForumType" class="type-select">
+            <option value="ESTANDAR">📝 Estándar</option>
+            <option value="IMPORTANTE">⚠️ Importante</option>
+            <option value="RECURSO">📎 Recurso</option>
+          </select>
+        </div>
+
         <textarea
           v-model.trim="newForumText"
           class="composer-input"
@@ -48,10 +57,24 @@
       <p v-if="loadingForums" class="empty">Cargando foros...</p>
 
       <template v-else>
-        <article v-for="p in forumsSorted" :key="p.id" class="post-card">
+        <article
+          v-for="p in forumsSorted"
+          :key="p.id"
+          class="post-card"
+          :class="'post-card--' + (p.type || 'ESTANDAR').toLowerCase()"
+        >
           <div class="post-row">
             <div class="post-content">
-              <div class="author">{{ p.author }}</div>
+              <div class="post-header">
+                <span
+                  v-if="p.type && p.type !== 'ESTANDAR'"
+                  class="badge"
+                  :class="'badge--' + p.type.toLowerCase()"
+                >
+                  {{ p.type === 'IMPORTANTE' ? '⚠️ Importante' : '📎 Recurso' }}
+                </span>
+                <div class="author">{{ p.author }}</div>
+              </div>
               <p class="body">{{ p.text }}</p>
             </div>
 
@@ -89,7 +112,12 @@
           <div class="post-actions">
             <div class="date">{{ formatDate(selectedForum.createdAt) }}</div>
 
-            <button class="btn-comment" type="button" @click="toggleCommentComposer">
+            <button
+              v-if="!isInactive"
+              class="btn-comment"
+              type="button"
+              @click="toggleCommentComposer"
+            >
               Agregar comentario
             </button>
           </div>
@@ -161,6 +189,7 @@ const props = defineProps({
   loadingComments: { type: Boolean, default: false },
   savingForum: { type: Boolean, default: false },
   savingComment: { type: Boolean, default: false },
+  isInactive: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['create-forum', 'load-comments', 'add-comment'])
@@ -206,10 +235,12 @@ function goBack() {
 
 const addingForum = ref(false)
 const newForumText = ref('')
+const newForumType = ref('ESTANDAR')
 
 function startAddForum() {
   addingForum.value = true
   newForumText.value = ''
+  newForumType.value = 'ESTANDAR'
 }
 
 function cancelAddForum() {
@@ -221,10 +252,11 @@ function saveForum() {
   const text = newForumText.value.trim()
   if (!text) return
 
-  emit('create-forum', { text })
+  emit('create-forum', { text, type: newForumType.value })
 
   addingForum.value = false
   newForumText.value = ''
+  newForumType.value = 'ESTANDAR'
 }
 
 const showCommentComposer = ref(false)
@@ -285,16 +317,43 @@ watch(
   margin: 0 0 18px;
 }
 
+.composer-type {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.composer-type label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.type-select {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.type-select:focus {
+  outline: none;
+  border-color: #004671;
+}
+
 .btn-add {
-  height: 36px;
-  padding: 0 22px;
-  border-radius: 999px;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
-  font-weight: 800;
-  font-size: 16px;
+  font-weight: 600;
+  font-size: 15px;
 }
 
 .btn-add:hover {
@@ -326,6 +385,31 @@ watch(
   min-width: 0;
 }
 
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.badge--importante {
+  background: #dc2626;
+  color: #fff;
+}
+
+.badge--recurso {
+  background: #004671;
+  color: #fff;
+}
+
 .author {
   font-size: 16px;
   font-weight: 800;
@@ -354,12 +438,12 @@ watch(
 }
 
 .btn-eye-forum {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
   font-size: 16px;
   display: inline-flex;
@@ -372,15 +456,15 @@ watch(
 }
 
 .btn-comment {
-  height: 34px;
-  padding: 0 18px;
-  border-radius: 999px;
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
-  font-weight: 800;
-  font-size: 16px;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .btn-comment:hover {
@@ -423,7 +507,7 @@ watch(
   border-radius: 999px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
   display: inline-flex;
   align-items: center;

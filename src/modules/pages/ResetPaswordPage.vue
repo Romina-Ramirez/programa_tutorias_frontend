@@ -1,13 +1,16 @@
 <template>
   <main class="page-form">
     <section class="card">
-      <p v-if="emailFromLink" class="text-form">Por favor, restablezca su contraseña.</p>
+      <h1 v-if="canChangePassword" class="form-title">
+        {{ isLoggedIn ? 'Cambiar contraseña' : 'Restablecer contraseña' }}
+      </h1>
 
-      <p v-if="!emailFromLink" class="error" role="alert">
-        El enlace no contiene el email. Vuelve a solicitar el correo de verificación.
+      <p v-else class="error" role="alert">
+        No se pudo validar el cambio de contraseña.
+        {{ isLoggedIn ? 'Inicie sesión nuevamente.' : 'Use el enlace del correo.' }}
       </p>
 
-      <form v-if="emailFromLink" class="form" @submit.prevent="onSubmit">
+      <form v-if="canChangePassword" class="form" @submit.prevent="onSubmit">
         <div class="input-box" :class="{ filled: password }">
           <input
             id="password"
@@ -46,7 +49,7 @@
           </button>
         </div>
 
-        <button class="btn-form" type="submit" :disabled="loading || !emailFromLink">
+        <button class="btn-form" type="submit" :disabled="loading || !canChangePassword">
           {{ loading ? 'Procesando...' : 'Aceptar' }}
         </button>
 
@@ -64,8 +67,20 @@ import { changePassword } from '../helpers/authenticationHelper'
 const route = useRoute()
 const router = useRouter()
 
-const emailFromLink = computed(() => {
-  const raw = String(route.query.email ?? '').trim()
+function readAuth() {
+  try {
+    const raw = localStorage.getItem('auth')
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+const auth = ref(readAuth())
+
+const tokenFromLink = computed(() => {
+  const raw = String(route.query.token ?? '').trim()
   if (!raw) return ''
   try {
     return decodeURIComponent(raw)
@@ -73,6 +88,14 @@ const emailFromLink = computed(() => {
     return raw
   }
 })
+
+const email = computed(() => {
+  if (auth.value?.isAuthenticated) return auth.value.email
+  return ''
+})
+
+const isLoggedIn = computed(() => auth.value?.isAuthenticated === true)
+const canChangePassword = computed(() => isLoggedIn.value || !!tokenFromLink.value)
 
 const password = ref('')
 const confirmPassword = ref('')
@@ -85,8 +108,9 @@ const error = ref('')
 async function onSubmit() {
   error.value = ''
 
-  if (!emailFromLink.value) {
-    error.value = 'El enlace no contiene el email.'
+  if (!canChangePassword.value) {
+    error.value =
+      'No se pudo validar el cambio de contraseña. Inicie sesión o use el enlace del correo.'
     return
   }
 
@@ -99,14 +123,19 @@ async function onSubmit() {
     loading.value = true
 
     await changePassword({
-      email: emailFromLink.value,
+      email: isLoggedIn.value ? email.value : undefined,
       password: password.value,
+      token: tokenFromLink.value || undefined,
     })
 
     password.value = ''
     confirmPassword.value = ''
 
-    router.push('/login')
+    if (isLoggedIn.value) {
+      router.push('/perfil')
+    } else {
+      router.push('/login')
+    }
   } catch (e) {
     error.value = e?.response?.data || 'No se pudo cambiar la contraseña.'
   } finally {

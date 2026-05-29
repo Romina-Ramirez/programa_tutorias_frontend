@@ -135,16 +135,29 @@ onMounted(async () => {
 <style scoped>
 .title-simple {
   margin: 0;
-  padding-top: 40px;
+  padding: 28px 20px 6px;
 }
 
 .panel {
-  padding: 18px 40px 26px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 14px 18px 30px;
 }
 
 .empty {
-  font-size: 18px;
+  font-size: 16px;
   text-align: center;
   margin: 18px 0;
+}
+
+@media (max-width: 768px) {
+  .title-simple {
+    padding-top: 22px;
+    font-size: 20px;
+  }
+
+  .panel {
+    padding: 10px 12px 24px;
+  }
 }
 </style>

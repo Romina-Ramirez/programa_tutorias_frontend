@@ -1,9 +1,14 @@
 <template>
   <main class="page-form">
     <section class="card">
-      <p class="text-form">Por favor, ingrese sus datos a continuación</p>
+      <h1 class="form-title">Crear cuenta</h1>
 
       <form class="form" @submit.prevent="onSubmit">
+        <div class="input-box" :class="{ filled: cedula }">
+          <input id="cedula" v-model.trim="cedula" type="text" autocomplete="cedula" required />
+          <label for="cedula">Cédula</label>
+        </div>
+
         <div class="input-box" :class="{ filled: email }">
           <input id="email" v-model.trim="email" type="email" autocomplete="email" required />
           <label for="email">Email</label>
@@ -11,7 +16,7 @@
 
         <div class="input-box" :class="{ filled: nombre }">
           <input id="nombre" v-model.trim="nombre" type="text" autocomplete="given-name" required />
-          <label for="nombre">Nombre</label>
+          <label for="nombre">Nombres</label>
         </div>
 
         <div class="input-box" :class="{ filled: apellido }">
@@ -22,7 +27,7 @@
             autocomplete="family-name"
             required
           />
-          <label for="apellido">Apellido</label>
+          <label for="apellido">Apellidos</label>
         </div>
 
         <div class="input-box" :class="{ filled: password }">
@@ -82,6 +87,7 @@ import { registerStudent } from '../helpers/authenticationHelper'
 
 const router = useRouter()
 
+const cedula = ref('')
 const email = ref('')
 const nombre = ref('')
 const apellido = ref('')
@@ -94,8 +100,22 @@ const showConfirm = ref(false)
 const loading = ref(false)
 const error = ref('')
 
+function sanitizeDigits(v) {
+  return String(v ?? '').replace(/\D/g, '')
+}
+
 async function onSubmit() {
   error.value = ''
+
+  const cedulaVal = sanitizeDigits(cedula.value)
+  if (!cedulaVal) {
+    error.value = 'Debe ingresar la cédula.'
+    return
+  }
+  if (cedulaVal.length < 7 || cedulaVal.length > 9) {
+    error.value = 'La cédula debe tener entre 7 y 9 dígitos.'
+    return
+  }
 
   if (password.value !== confirmPassword.value) {
     error.value = 'Las contraseñas no coinciden.'
@@ -106,6 +126,7 @@ async function onSubmit() {
     loading.value = true
 
     await registerStudent({
+      idCard: cedula.value.trim(),
       name: nombre.value.trim(),
       lastName: apellido.value.trim(),
       email: email.value.trim(),

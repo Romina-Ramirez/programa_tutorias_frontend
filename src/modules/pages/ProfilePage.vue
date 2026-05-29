@@ -12,7 +12,7 @@
 
           <div v-else class="profile-form">
             <div class="row">
-              <label class="lbl" for="nombre">Nombre:</label>
+              <label class="lbl" for="nombre">Nombres:</label>
               <input
                 id="nombre"
                 class="input"
@@ -23,7 +23,7 @@
             </div>
 
             <div class="row">
-              <label class="lbl" for="apellido">Apellido:</label>
+              <label class="lbl" for="apellido">Apellidos:</label>
               <input
                 id="apellido"
                 class="input"
@@ -271,7 +271,7 @@ async function toggleEdit() {
 }
 
 function goChangePassword() {
-  router.push({ name: 'verifyEmail' })
+  router.push({ name: 'change-password' })
 }
 
 function viewCourse(curso) {
@@ -303,92 +303,113 @@ onMounted(async () => {
 <style scoped>
 .page-profile {
   width: 100%;
-  background: #d9d9d9;
-  min-height: calc(100vh - 80px);
+  background: #e8e8e8;
+  min-height: 0;
+  padding-bottom: 20px;
 }
 
 .head {
-  display: grid;
-  grid-template-columns: 60% 1fr;
+  background: #ffffff;
+  padding: 22px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  justify-content: space-around;
   align-items: center;
-  padding: 40px;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .head-title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   text-align: center;
+  color: #1a1a1a;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 60% 1fr;
-  gap: 50px;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(340px, 1.05fr);
+  gap: 22px;
+  width: 100%;
+  padding: 22px 16px 12px;
+  margin: 0 auto;
+}
+
+.left,
+.right {
+  min-width: 0;
 }
 
 .profile-card {
   position: relative;
   background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
-  padding: 60px;
-  margin-left: 50px;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  padding: 32px 28px 72px;
 }
 
 .profile-form {
-  display: grid;
-  gap: 25px;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .lbl {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  text-align: left;
-  margin-left: 25px;
+  text-align: right;
+  min-width: 100px;
+  color: #333;
 }
 
 .input {
-  height: 45px;
-  border-radius: 15px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  padding-inline: 10px;
-  font-size: 16px;
-  text-align: center;
-  margin-right: 25px;
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 0 14px;
+  font-size: 15px;
+  text-align: left;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .input:disabled {
   opacity: 1;
-  color: #000;
+  color: #1a1a1a;
+  background: #f9f9f9;
 }
 
 .input:focus {
-  border: 1px solid rgba(27, 79, 120, 0.75);
-  box-shadow: 0 0 0 3px rgba(27, 79, 120, 0.15);
+  border-color: rgba(0, 70, 113, 0.6);
+  box-shadow: 0 0 0 3px rgba(0, 70, 113, 0.1);
 }
 
 .edit-btn {
   position: absolute;
   right: 20px;
   bottom: 20px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
+  transition:
+    background 0.2s,
+    transform 0.1s;
 }
 
 .edit-btn:disabled {
@@ -396,8 +417,151 @@ onMounted(async () => {
   cursor: not-allowed;
 }
 
-.edit-btn:hover {
-  opacity: 0.92;
+.edit-btn:hover:not(:disabled) {
+  background: #003d5c;
+}
+
+.edit-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 0;
+  cursor: pointer;
+  background: #004671;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+}
+
+.btn:hover {
+  background: #003d5c;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.courses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.course-item {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.course-text {
+  flex: 1;
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.course-text div:first-child {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.course-estado {
+  font-weight: 700;
+  color: #004671;
+  margin-top: 6px;
+}
+
+.course-eye-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
+  background: #004671;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+}
+
+.course-eye-btn:hover {
+  background: #003d5c;
+}
+
+.course-eye-btn:active {
+  transform: scale(0.95);
+}
+
+.empty {
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: center;
+  color: #666;
+  padding: 30px;
+  background: #f5f5f5;
+  border-radius: 12px;
+}
+
+.empty-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.loading {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  padding: 30px;
+  color: #666;
+}
+
+.error {
+  margin: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #b00020;
+  text-align: center;
+  padding: 10px;
+  background: rgba(176, 0, 32, 0.06);
+  border-radius: 8px;
+}
+
+.success {
+  margin: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a7a2f;
+  text-align: center;
+  padding: 10px;
+  background: rgba(10, 122, 47, 0.06);
+  border-radius: 8px;
 }
 
 .btn-mini {
@@ -405,100 +569,48 @@ onMounted(async () => {
   font-weight: 800;
 }
 
-.btn {
-  margin-top: 25px;
-  width: auto;
-  height: auto;
-  border-radius: 22px;
-  border: 0;
-  cursor: pointer;
-  background: #1b4f78;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  padding: 15px 40px;
-}
+/* Responsive */
+@media (max-width: 768px) {
+  .head {
+    padding: 18px 16px;
+    flex-direction: column;
+    gap: 16px;
+  }
 
-.courses-list {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  margin-right: 50px;
-}
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px 12px 10px;
+  }
 
-.course-item {
-  background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
-  padding: 20px 30px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 72px;
-}
+  .left,
+  .right {
+    width: 100%;
+  }
 
-.course-text {
-  flex: 1;
-  text-align: center;
-  font-size: 16px;
-  line-height: 1.7;
-}
+  .profile-card {
+    padding: 22px 18px 70px;
+  }
 
-.course-estado {
-  font-weight: 900;
-}
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 
-.course-eye-btn {
-  width: 50px;
-  height: 50px;
-  border-radius: 999px;
-  border: 0;
-  cursor: pointer;
-  background: #0b4f77;
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 14px;
-  font-size: 16px;
-}
+  .lbl {
+    text-align: left;
+    min-width: unset;
+  }
 
-.course-eye-btn:hover {
-  opacity: 0.92;
-}
+  .course-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
 
-.empty {
-  margin: 10px 0 0;
-  font-size: 18px;
-  text-align: center;
-}
-
-.empty-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.loading {
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-}
-
-.error {
-  margin: 10px 0 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: #b00020;
-  text-align: center;
-}
-
-.success {
-  margin: 10px 0 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: #0b7a2e;
-  text-align: center;
+  .course-text {
+    text-align: center;
+  }
 }
 </style>

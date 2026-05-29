@@ -58,6 +58,8 @@
             :saving-comment="savingComment"
             :loading-forums="loadingForums"
             :loading-comments="loadingComments"
+            :is-inactive="courseIsInactive"
+            :meeting-url="course.meetingUrl"
             @load-student-grades="loadTutorGradesByStudent"
             @save-grade="handleSaveGrade"
             @save-report="handleSaveReport"
@@ -107,12 +109,7 @@ import {
   getReportsByCourse,
 } from '../helpers/tutorHelper'
 
-import {
-  listForumsByCourse,
-  createForum,
-  listComments,
-  addComment,
-} from '../helpers/forumHelper'
+import { listForumsByCourse, createForum, listComments, addComment } from '../helpers/forumHelper'
 
 const route = useRoute()
 const router = useRouter()
@@ -152,6 +149,7 @@ function mapStudentCourse(dto) {
     estado: dto?.status ?? '',
     tutor: dto?.tutor ?? '',
     carrera: dto?.career ?? '',
+    meetingUrl: dto?.meetingUrl ?? '',
   }
 }
 
@@ -164,6 +162,7 @@ function mapTutorCourse(dto) {
     fechaFin: toDisplayDate(dto?.endDate),
     horario: dto?.schedule ?? '',
     estado: dto?.status ?? '',
+    meetingUrl: dto?.meetingUrl ?? '',
   }
 }
 
@@ -198,12 +197,14 @@ function mapForumDto(dto) {
   return {
     id: dto?.id ?? null,
     author:
+      dto?.authorName ||
       dto?.author ||
       dto?.userName ||
       `${dto?.name ?? ''} ${dto?.lastName ?? ''}`.trim() ||
       'Usuario',
-    createdAt: dto?.createdAt ?? dto?.created ?? new Date().toISOString(),
-    text: dto?.title ?? dto?.text ?? dto?.description ?? '',
+    createdAt: dto?.createdAt ?? new Date().toISOString(),
+    text: dto?.title ?? dto?.text ?? '',
+    type: dto?.type ?? 'ESTANDAR',
   }
 }
 
@@ -211,12 +212,13 @@ function mapCommentDto(dto) {
   return {
     id: dto?.id ?? null,
     author:
+      dto?.authorName ||
       dto?.author ||
       dto?.userName ||
       `${dto?.name ?? ''} ${dto?.lastName ?? ''}`.trim() ||
       'Usuario',
-    createdAt: dto?.createdAt ?? dto?.created ?? new Date().toISOString(),
-    text: dto?.text ?? dto?.description ?? dto?.comment ?? '',
+    createdAt: dto?.createdAt ?? new Date().toISOString(),
+    text: dto?.comment ?? dto?.text ?? '',
   }
 }
 
@@ -264,20 +266,45 @@ const reports = ref([])
 const forums = ref([])
 const commentsByForum = ref({})
 
-const navStudent = [
-  { label: 'Principal', name: 'course-principal' },
-  { label: 'Calificaciones', name: 'course-grades' },
-  { label: 'Foro', name: 'course-forum' },
-  { label: 'Reunión', name: 'course-meeting' },
-]
+const courseIsActive = computed(() => course.value?.estado === 'ACTIVE')
+const courseIsInProgress = computed(() => course.value?.estado === 'IN_PROGRESS')
+const courseIsInactive = computed(() => course.value?.estado === 'INACTIVE')
 
-const navTutor = [
-  { label: 'Principal', name: 'course-principal' },
-  { label: 'Calificaciones', name: 'course-grades' },
-  { label: 'Foro', name: 'course-forum' },
-  { label: 'Reunión', name: 'course-meeting' },
-  { label: 'Reportes', name: 'course-reports' },
-]
+const navStudent = computed(() => {
+  const items = [
+    { label: 'Principal', name: 'course-principal' },
+    { label: 'Foro', name: 'course-forum' },
+  ]
+  // Calificaciones visible en IN_PROGRESS e INACTIVE
+  if (courseIsInProgress.value || courseIsInactive.value) {
+    items.splice(1, 0, { label: 'Calificaciones', name: 'course-grades' })
+  }
+  // Reunión solo en IN_PROGRESS
+  if (courseIsInProgress.value) {
+    items.push({ label: 'Reunión', name: 'course-meeting' })
+  }
+  return items
+})
+
+const navTutor = computed(() => {
+  const items = [
+    { label: 'Principal', name: 'course-principal' },
+    { label: 'Foro', name: 'course-forum' },
+  ]
+  // Calificaciones visible en IN_PROGRESS e INACTIVE
+  if (courseIsInProgress.value || courseIsInactive.value) {
+    items.splice(1, 0, { label: 'Calificaciones', name: 'course-grades' })
+  }
+  // Reunión solo en IN_PROGRESS
+  if (courseIsInProgress.value) {
+    items.push({ label: 'Reunión', name: 'course-meeting' })
+  }
+  // Reportes visible en IN_PROGRESS e INACTIVE
+  if (courseIsInProgress.value || courseIsInactive.value) {
+    items.push({ label: 'Reportes', name: 'course-reports' })
+  }
+  return items
+})
 
 const showStudentNav = computed(() => isStudent.value && isEnrolled.value)
 
@@ -440,6 +467,7 @@ async function handleCreateForum(payload) {
     savingForum.value = true
     await createForum(userId.value, courseId.value, {
       title: payload.text,
+      type: payload.type || 'ESTANDAR',
     })
     await loadForums()
   } catch (e) {
@@ -565,34 +593,40 @@ onMounted(async () => {
 <style scoped>
 .subnav {
   width: 100%;
-  background: #0b4f77;
+  background: #004671;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 25px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
 }
 
 .nav-item {
-  background: transparent;
-  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   color: #fff;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  margin-inline: 50px;
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
 }
 
 .nav-item.active {
-  text-decoration: underline;
-  text-underline-offset: 6px;
+  background: #fff;
+  color: #004671;
 }
 
 .sep {
-  color: white;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .course-area {
-  padding: 60px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
 }
 
 .btn-wrap {
@@ -601,18 +635,17 @@ onMounted(async () => {
 }
 
 .btn {
-  width: 220px;
-  height: 54px;
-  margin-top: 30px;
-  padding-block: 10px;
-  padding-inline: 40px;
-  border-radius: 25px;
+  width: min(200px, 100%);
+  min-height: 48px;
+  margin-top: 24px;
+  padding: 12px 32px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #1b4f78;
+  background: #004671;
   color: #fff;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .btn:disabled {
@@ -626,7 +659,30 @@ onMounted(async () => {
 
 .state-text {
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 20px;
+    line-height: 1.35;
+  }
+
+  .subnav {
+    padding: 14px 10px;
+  }
+
+  .sep {
+    display: none;
+  }
+
+  .course-area {
+    padding: 20px 14px 28px;
+  }
+
+  .btn-wrap {
+    width: 100%;
+  }
 }
 </style>

@@ -76,11 +76,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .page-notfound {
-  background: #d9d9d9;
-  min-height: calc(100vh - 260px);
+  background: #e0e0e0;
+  min-height: calc(100vh - 80px);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 40px 20px;
 }
 
 .nf-card {
@@ -110,6 +111,6 @@ onBeforeUnmount(() => {
 }
 
 .nf-link:hover {
-  color: #1b4f78;
+  color: #004671;
 }
 </style>

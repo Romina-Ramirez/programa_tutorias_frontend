@@ -62,20 +62,20 @@ const isTutor = computed(() => String(props.role) === 'TUTOR')
 .course-card {
   width: 100%;
   background: #fff;
-  border-radius: 22px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
 }
 
 .course-card--big {
-  padding: 50px 80px;
-  margin-bottom: 30px;
+  padding: 32px 40px;
+  margin-bottom: 20px;
 }
 
 .course-card--small {
-  padding: 50px 80px;
-  min-height: 150px;
+  padding: 32px 40px;
+  min-height: 120px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -147,5 +147,17 @@ const isTutor = computed(() => String(props.role) === 'TUTOR')
 
 .participants::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.65);
+}
+
+@media (max-width: 768px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .course-card--big,
+  .course-card--small {
+    padding: 24px 20px;
+  }
 }
 </style>

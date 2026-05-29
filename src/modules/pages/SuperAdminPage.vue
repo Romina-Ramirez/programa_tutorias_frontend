@@ -18,20 +18,23 @@
 
       <template v-else>
         <div v-if="admins.length" class="table-head">
-          <div class="th">Nombre</div>
-          <div class="th">Apellido</div>
+          <div class="th">Cédula</div>
+          <div class="th">Nombres</div>
+          <div class="th">Apellidos</div>
           <div class="th">Email</div>
           <div class="th"></div>
         </div>
 
         <article v-for="a in admins" :key="a.id" class="admin-item">
           <div class="card-table">
+            <input class="cell-input" type="text" disabled :value="a.cedula" placeholder="Cédula" />
+
             <input
               class="cell-input"
               type="text"
               :disabled="editingId !== a.id || busy.updateAdminId === a.id"
               v-model.trim="editNombreMap[a.id]"
-              placeholder="Nombre"
+              placeholder="Nombres"
             />
 
             <input
@@ -39,7 +42,7 @@
               type="text"
               :disabled="editingId !== a.id || busy.updateAdminId === a.id"
               v-model.trim="editApellidoMap[a.id]"
-              placeholder="Apellido"
+              placeholder="Apellidos"
             />
 
             <input class="cell-input" type="email" disabled :value="a.email" />
@@ -87,7 +90,15 @@
           <input
             class="modal-input"
             type="text"
-            placeholder="Nombre"
+            placeholder="Cédula"
+            v-model.trim="addForm.cedula"
+            required
+            :disabled="busy.addAdmin"
+          />
+          <input
+            class="modal-input"
+            type="text"
+            placeholder="Nombres"
             v-model.trim="addForm.nombre"
             required
             :disabled="busy.addAdmin"
@@ -95,7 +106,7 @@
           <input
             class="modal-input"
             type="text"
-            placeholder="Apellido"
+            placeholder="Apellidos"
             v-model.trim="addForm.apellido"
             required
             :disabled="busy.addAdmin"
@@ -132,22 +143,27 @@
         </button>
 
         <div class="modal-body">
-          <p class="modal-text">
-            Debe asignar un nuevo administrador a los tutores que están asignados al que desea
-            eliminar.
-          </p>
+          <template v-if="tutorCountForDelete > 0">
+            <p class="modal-text">
+              Debe reasignar los {{ tutorCountForDelete }} tutor(es) asignados a este administrador
+              antes de eliminarlo.
+            </p>
 
-          <select class="modal-select" v-model="reassignToId" :disabled="busy.deleteAdmin">
-            <option disabled value="">Seleccione un administrador</option>
-            <option v-for="x in reassignOptions" :key="x.id" :value="x.id">
-              {{ x.nombre }} {{ x.apellido }}
-            </option>
-          </select>
+            <select class="modal-select" v-model="reassignToId" :disabled="busy.deleteAdmin">
+              <option disabled value="">Seleccione un administrador</option>
+              <option v-for="x in reassignOptions" :key="x.id" :value="x.id">
+                {{ x.nombre }} {{ x.apellido }}
+              </option>
+            </select>
 
-          <p class="modal-text">
-            ¿Está seguro de que quiere eliminar el administrador y reasignar los tutores a uno
-            nuevo?
-          </p>
+            <p class="modal-text">
+              ¿Está seguro de que quiere eliminar el administrador y reasignar los tutores?
+            </p>
+          </template>
+
+          <template v-else-if="tutorCountForDelete === 0">
+            <p class="modal-text">¿Está seguro de que quiere eliminar este administrador?</p>
+          </template>
 
           <p v-if="deleteError" class="modal-error">{{ deleteError }}</p>
 
@@ -182,6 +198,7 @@ import {
   listMyAdmins,
   updateAdmin as updateAdminApi,
   deleteAdmin as deleteAdminApi,
+  getTutorCountByAdminId,
 } from '../helpers/superAdminHelper'
 
 function readAuth() {
@@ -205,6 +222,7 @@ function pick(obj, keys, fallback = '') {
 function mapAdminDto(dto) {
   return {
     id: pick(dto, ['id', 'userId', 'adminId'], null),
+    cedula: pick(dto, ['idCard', 'cedula'], ''),
     nombre: pick(dto, ['name', 'nombre'], ''),
     apellido: pick(dto, ['lastName', 'apellido'], ''),
     email: pick(dto, ['email'], ''),
@@ -300,6 +318,7 @@ async function toggleEdit(a) {
 const addOpen = ref(false)
 const addError = ref('')
 const addForm = reactive({
+  cedula: '',
   nombre: '',
   apellido: '',
   email: '',
@@ -308,6 +327,7 @@ const addFormEl = ref(null)
 
 function openAdd() {
   addError.value = ''
+  addForm.cedula = ''
   addForm.nombre = ''
   addForm.apellido = ''
   addForm.email = ''
@@ -331,9 +351,15 @@ async function addAdmin() {
 
   const nombre = String(addForm.nombre ?? '').trim()
   const apellido = String(addForm.apellido ?? '').trim()
+  const cedula = String(addForm.cedula ?? '').trim()
   const email = String(addForm.email ?? '')
     .trim()
     .toLowerCase()
+
+  if (!cedula || !nombre || !apellido || !email) {
+    addError.value = 'Debe completar todos los campos.'
+    return
+  }
 
   if (!isValidEmail(email)) {
     addError.value = 'El email no es válido.'
@@ -344,6 +370,7 @@ async function addAdmin() {
     busy.addAdmin = true
 
     const payload = {
+      idCard: cedula,
       name: nombre,
       lastName: apellido,
       email,
@@ -366,14 +393,26 @@ const deleteOpen = ref(false)
 const deleteError = ref('')
 const deletingAdminId = ref(null)
 const reassignToId = ref('')
+const tutorCountForDelete = ref(0)
+const loadingTutorCount = ref(false)
 
 const reassignOptions = computed(() => admins.value.filter((x) => x.id !== deletingAdminId.value))
 
-function openDelete(a) {
+async function openDelete(a) {
   deleteError.value = ''
   deletingAdminId.value = a.id
   reassignToId.value = ''
+  tutorCountForDelete.value = 0
   deleteOpen.value = true
+
+  try {
+    loadingTutorCount.value = true
+    tutorCountForDelete.value = await getTutorCountByAdminId(a.id)
+  } catch (e) {
+    tutorCountForDelete.value = 0
+  } finally {
+    loadingTutorCount.value = false
+  }
 }
 
 function closeDelete() {
@@ -386,23 +425,28 @@ function closeDelete() {
 async function confirmDelete() {
   deleteError.value = ''
 
-  if (reassignOptions.value.length === 0) {
-    deleteError.value = 'No puedes eliminar el único administrador existente.'
-    return
-  }
-
-  if (!reassignToId.value) {
-    deleteError.value = 'Debe seleccionar un administrador para reasignar.'
-    return
-  }
-
   const idToDelete = deletingAdminId.value
   if (!idToDelete) return
+
+  if (tutorCountForDelete.value > 0) {
+    if (reassignOptions.value.length === 0) {
+      deleteError.value = 'No puedes eliminar el único administrador existente.'
+      return
+    }
+    if (!reassignToId.value) {
+      deleteError.value = 'Debe seleccionar un administrador para reasignar los tutores.'
+      return
+    }
+  }
 
   try {
     busy.deleteAdmin = true
 
-    await deleteAdminApi(idToDelete, reassignToId.value)
+    if (tutorCountForDelete.value > 0) {
+      await deleteAdminApi(idToDelete, reassignToId.value)
+    } else {
+      await deleteAdminApi(idToDelete, null)
+    }
 
     admins.value = admins.value.filter((x) => x.id !== idToDelete)
 
@@ -444,31 +488,102 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* Específicos de SuperAdmin */
+
+/* Grid específico para admins (5 columnas) */
 .table-head {
-  grid-template-columns: 1fr 1fr 1fr 280px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 280px;
+  background: #eceff2;
+  border-radius: 18px;
+}
+
+.th {
+  color: #333;
 }
 
 .admin-item {
-  margin-bottom: 22px;
+  margin: 0 0 12px;
 }
 
 .card-table {
-  grid-template-columns: 1fr 1fr 1fr 280px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 280px;
+  border-radius: 18px;
+  padding: 14px 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
-.actions-row {
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+.cell-input {
+  border-radius: 14px;
+  border: 1px solid #cccccc;
 }
 
-.btn-pill:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
+.cell-input:disabled {
+  background: #f5f5f5;
+  color: #333333;
 }
 
-.row-error {
-  margin: 10px 0 0;
-  font-weight: 700;
-  color: #b00020;
-  text-align: left;
+.btn-pill-light {
+  background: #ffffff;
+  color: #004671;
+  border: 1px solid #ffffff;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 600;
+}
+
+.btn-pill-light:hover {
+  background: #f0f0f0;
+}
+
+/* Modal específico */
+.modal-select {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #cccccc;
+  padding: 0 10px;
+  background: #ffffff;
+  font-size: 14px;
+}
+
+/* Responsive específico */
+@media (max-width: 900px) {
+  .table-head {
+    display: none;
+  }
+
+  .card-table {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .cell-input {
+    width: 100%;
+    text-align: left;
+  }
+
+  .actions-row {
+    width: 100%;
+    justify-content: stretch;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #eeeeee;
+  }
+
+  .btn-pill {
+    flex: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .welcome-title {
+    font-size: 20px;
+    line-height: 1.35;
+  }
+
+  .shell {
+    padding: 18px 12px 26px;
+  }
 }
 </style>

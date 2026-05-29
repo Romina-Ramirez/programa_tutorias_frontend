@@ -1,67 +1,73 @@
 html,
 body {
-  background: white;
+  background: #f3f4f6;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
 }
 
+body {
+  color: #111827;
+}
+
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: black;
-
+  color: #111827;
   margin: 0;
   padding-top: 80px;
 }
 
 * {
+  box-sizing: border-box;
   font-family: 'Open Sans', Arial, sans-serif;
-  font-size: 16px;
 }
 
-/* Estilo de página de los form*/
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 .page-form {
   display: flex;
   justify-content: center;
-  padding-block: 3%;
+  align-items: center;
+  padding: 40px 20px;
+  background: #ffffff;
+  min-height: calc(100vh - 80px);
 }
 
-/* Estilo del contenedor del form */
 .card {
-  width: 560px;
-  max-width: calc(100% - 40px);
+  width: min(520px, 100%);
   background: #fff;
-  border-radius: 22px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
-  padding: 40px 60px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 48px 40px;
 }
 
-/* Estilo del form */
 .form {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 30px;
+  align-items: stretch;
+  gap: 18px;
 }
 
-/* Estilo botón del form */
 .btn-form {
-  width: auto;
-  height: auto;
-  padding: 10px 40px;
-  margin: 0 auto;
-  border-radius: 15px;
+  min-width: 200px;
+  min-height: 44px;
+  padding: 12px 32px;
+  margin: 16px auto 0;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #1b4f78;
+  background: #004671;
   color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.1;
-  white-space: pre-line;
+  font-size: 15px;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
 }
 
 .btn-form:disabled {
@@ -69,81 +75,79 @@ body {
   cursor: not-allowed;
 }
 
-.btn-form:hover {
-  opacity: 0.92;
+.btn-form:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
-/* Estilo caja de input del form con label que sube*/
 .input-box {
   position: relative;
-  width: 97%;
-  height: 38px;
-  border-radius: 15px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 16px;
-  padding: 5px 0px 5px 5px;
-  outline: none;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  padding: 18px 44px 6px 14px;
   background: #fff;
-  margin-block: 7px;
 }
 
 .input-box label {
   position: absolute;
-  top: 30%;
+  top: 16px;
   left: 15px;
-  font-size: 16px;
-  color: gray;
+  font-size: 15px;
+  color: #6b7280;
   font-weight: 500;
   pointer-events: none;
-  transition: 0.5s;
+  transition: 0.2s ease;
 }
 
 .input-box input {
-  width: 95%;
-  height: 100%;
+  width: 100%;
+  height: 24px;
   background: transparent;
   border: none;
   outline: none;
-  font-size: 16px;
-  color: black;
-  font-weight: 500;
+  font-size: 15px;
+  color: #111827;
+  font-weight: 600;
+  padding: 0;
 }
 
 .input-box:focus-within label,
 .input-box.filled label {
-  top: -30px;
-  color: #000;
+  top: 7px;
+  font-size: 12px;
+  color: #004671;
 }
 
 .input-box:focus-within {
-  border: 1px solid rgba(27, 79, 120, 0.75);
-  box-shadow: 0 0 0 3px rgba(27, 79, 120, 0.15);
+  border-color: rgba(0, 70, 113, 0.75);
+  box-shadow: 0 0 0 3px rgba(0, 70, 113, 0.12);
 }
 
-/* Estilo input del form sin label*/
 .input-form {
-  position: relative;
-  width: 80%;
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 16px;
-  padding: 5px 15px 5px 15px;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  padding: 0 14px;
   outline: none;
   background: #fff;
 }
 
 .input-form:focus,
-.cell-input:focus {
-  border: 1px solid rgba(27, 79, 120, 0.75);
-  box-shadow: 0 0 0 3px rgba(27, 79, 120, 0.15);
+.cell-input:focus,
+.modal-input:focus,
+.modal-select:focus,
+.modal-textarea:focus {
+  border-color: rgba(27, 79, 120, 0.75);
+  box-shadow: 0 0 0 3px rgba(27, 79, 120, 0.12);
 }
 
-/* Estilo para el icono de mostrar y ocultar contraseña */
 .eye-btn {
   position: absolute;
   right: 10px;
-  top: 20%;
+  top: 50%;
+  transform: translateY(-50%);
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -152,99 +156,108 @@ body {
   padding: 6px;
 }
 
-.eye-btn:hover {
-  color: rgba(0, 0, 0, 0.75);
-}
-
-/* Estilo enlaces subrayados*/
 .row-links {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: -6px;
-  margin-bottom: 8px;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 2px;
 }
 
 .link {
-  font-size: 16px;
-  color: #000;
+  font-size: 14px;
+  color: #1f2937;
   text-decoration: underline;
 }
 
 .link:hover {
-  color: #1b4f78;
+  color: #004671;
 }
 
-/* Estilo mensaje satisfactorio */
-.success {
-  margin: 0; /* 0 auto*/
-  font-size: 16px;
-  color: #0a7a2f;
-  text-align: center;
-}
-
-/* Estilo mensaje de error */
+.success,
 .error {
-  margin: 0; /* 0 auto*/
-  font-size: 16px;
-  color: #b00020;
+  margin: 0;
+  font-size: 14px;
   text-align: center;
+  padding: 10px 12px;
+  border-radius: 12px;
 }
 
-/* Estilo texto informativo del form */
+.success {
+  color: #0a7a2f;
+  background: rgba(10, 122, 47, 0.08);
+}
+
+.error {
+  color: #b00020;
+  background: rgba(176, 0, 32, 0.08);
+}
+
 .text-form {
   text-align: center;
   font-size: 18px;
-  line-height: 1.35;
-  color: #000;
-  margin: 0px 0px 30px 0px;
+  line-height: 1.4;
+  color: #111827;
+  margin: 0 0 24px;
+  font-weight: 600;
 }
 
-/* Estilo para las páginas con fondo gris */
+.form-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 32px;
+}
+
 .page-gray-bg {
-  background: #d9d9d9;
-  min-height: calc(100vh - 260px);
+  background: #e0e0e0;
+  width: 100%;
+  min-height: calc(100vh - 80px);
 }
 
-/* Estilo para la banda de bienvenido Rol y Curso*/
 .welcome-band {
   background: #fff;
-  padding: 15px 0;
+  padding: 18px 20px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
 }
 
 .welcome-title {
   text-align: center;
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
 }
 
-/* Estilo banda azul con texto y botón */
 .info-band {
-  background: #0b4f77;
+  background: #004671;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 15px 30px;
+  gap: 18px;
+  padding: 16px 20px;
 }
 
 .info-text {
   color: #fff;
   font-weight: 600;
   text-align: left;
+  margin: 0;
 }
 
-/* Estilo contenedor para las tablas de admin y superAdmin */
 .shell {
-  padding: 50px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 16px 28px;
 }
 
-/* Estilo cabecera de las tablas de admin y superAdmin */
 .table-head {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.2fr 0.6fr 1fr 44px;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
-  margin: 20px;
+  margin: 0 0 14px;
+  padding: 0 10px;
 }
 
 .th {
@@ -252,85 +265,79 @@ body {
   text-align: center;
 }
 
-/* Estilos de filas de las tablas de admin y superAdmin */
 .card-table {
   background: #fff;
   border-radius: 22px;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
-  padding: 15px;
-  margin-bottom: 22px;
-
+  padding: 14px;
+  margin-bottom: 14px;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 280px;
-  gap: 18px;
+  gap: 14px;
   align-items: center;
 }
 
 .cell-input {
   width: 100%;
-  height: 36px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
   padding: 0 12px;
   text-align: center;
   outline: none;
   background: #fff;
-  box-sizing: border-box;
 }
 
 .cell-input:disabled {
   opacity: 1;
-  color: #000;
+  color: #111827;
+  background: #f8fafc;
 }
 
-/* Estilos de botones de las filas de tablas admin y superAdmin */
 .actions-row {
-  display: grid;
-  gap: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .btn-pill {
-  height: 36px;
-  padding: 0 18px;
-  border-radius: 18px;
+  min-height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
-  font-weight: 700;
-  white-space: nowrap;
+  font-weight: 600;
+  font-size: 14px;
+  transition: opacity 0.2s ease;
 }
 
 .btn-pill:hover {
-  opacity: 0.92;
+  opacity: 0.9;
 }
 
-/* Estilos del botón de agregar tutor y admin */
 .btn-pill-light {
   background: #fff;
-  color: #0b4f77;
+  color: #004671;
 }
 
-/* Estilos de tabla vacía */
 .empty {
-  font-size: 18px;
+  font-size: 16px;
   text-align: center;
-  margin-top: 16px;
+  margin: 16px 0;
 }
 
 .row-error {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   font-weight: 700;
   color: #b00020;
-  text-align: left;
-  margin-bottom: 20px;
+  text-align: center;
 }
 
-/* Estilos de modal flotante */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(15, 23, 42, 0.45);
   display: grid;
   place-items: center;
   z-index: 9999;
@@ -338,12 +345,12 @@ body {
 }
 
 .modal {
-  width: 560px;
-  max-width: calc(100% - 40px);
+  width: min(560px, 100%);
   background: #fff;
-  border-radius: 22px;
+  border-radius: 24px;
   position: relative;
-  padding: 50px;
+  padding: 40px 28px 28px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
 }
 
 .modal-close {
@@ -359,37 +366,38 @@ body {
   color: rgba(0, 0, 0, 0.5);
 }
 
-.modal-close:hover {
-  color: rgba(0, 0, 0, 0.75);
-}
-
 .modal-body {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  align-items: stretch;
+  gap: 18px;
+}
+
+.modal-input,
+.modal-select,
+.modal-textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0 12px;
+  outline: none;
+  background: #fff;
 }
 
 .modal-input,
 .modal-select {
-  width: 100%;
-  height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 0 12px;
-  outline: none;
-  background: #fff;
-  box-sizing: border-box;
+  min-height: 42px;
 }
 
-.modal-input:focus {
-  border: 1px solid rgba(27, 79, 120, 0.75);
-  box-shadow: 0 0 0 3px rgba(27, 79, 120, 0.15);
+.modal-textarea {
+  padding: 12px;
+  min-height: 96px;
 }
 
 .modal-text {
-  line-height: 1.35;
+  line-height: 1.45;
   text-align: center;
+  margin: 0;
 }
 
 .modal-error {
@@ -397,4 +405,84 @@ body {
   font-weight: 700;
   color: #b00020;
   text-align: center;
+}
+
+/* Botón chevron para expandir */
+.chev-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 0;
+  background: #f0f0f0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #666;
+  cursor: pointer;
+}
+
+.chev-btn:hover {
+  background: #e0e0e0;
+}
+
+@media (max-width: 900px) {
+  .page-form {
+    padding: 36px 16px 56px;
+  }
+
+  .shell {
+    padding: 18px 12px 24px;
+  }
+
+  .info-band {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .info-text {
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  #app {
+    padding-top: 72px;
+  }
+
+  .page-form {
+    padding: 24px 14px 40px;
+    min-height: calc(100vh - 72px);
+  }
+
+  .card {
+    padding: 28px 20px;
+    border-radius: 22px;
+  }
+
+  .text-form {
+    font-size: 16px;
+    margin-bottom: 18px;
+  }
+
+  .row-links {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .welcome-title {
+    font-size: 20px;
+  }
+
+  .modal {
+    padding: 36px 18px 22px;
+  }
+
+  .actions-row {
+    flex-direction: column;
+  }
+
+  .btn-pill,
+  .btn-form {
+    width: 100%;
+  }
 }

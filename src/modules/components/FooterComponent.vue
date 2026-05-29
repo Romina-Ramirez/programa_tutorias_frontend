@@ -2,13 +2,10 @@
   <footer class="footer">
     <div class="footer-top">
       <div class="grid">
-        <!-- Columna 1 -->
         <div class="brand">
           <div class="brand-head">
             <img class="logo" src="../store/logo_uce.png" alt="Universidad Central del Ecuador" />
-            <div class="brand-name">
-              <div>Universidad Central del Ecuador</div>
-            </div>
+            <div class="brand-name">Universidad Central del Ecuador</div>
           </div>
 
           <p class="brand-text">
@@ -20,38 +17,34 @@
           </p>
         </div>
 
-        <!-- Columna 2 -->
         <div class="col">
           <div class="col-title">Información</div>
 
           <a class="link-footer" href="https://www.uce.edu.ec/" target="_blank" rel="noopener">
-            Sitio Web
+            Sitio web
           </a>
 
           <a class="link-footer" href="https://siiu.uce.edu.ec/" target="_blank" rel="noopener">
-            Sistema de Información Integral
+            Sistema de información integral
           </a>
         </div>
 
-        <!-- Columna 3 -->
         <div class="col">
-          <div class="col-title">Contáctanos</div>
+          <div class="col-title">Contacto</div>
 
           <div class="contact-item">
             <FontAwesomeIcon class="icon" :icon="['fas', 'map-pin']" />
             <span>Cdla. Universitaria</span>
           </div>
 
-          <div class="contact-item">
+          <div class="contact-item contact-item-wrap">
             <FontAwesomeIcon class="icon" :icon="['fas', 'envelope']" />
-            <span>Email:</span>
-            <a class="link-footer inline" href="mailto:tutorias.uce@gmail.com">
-              tutorias.uce@gmail.com
-            </a>
+            <a class="link-footer inline" href="mailto:tutorias.uce@gmail.com"
+              >tutorias.uce@gmail.com</a
+            >
           </div>
         </div>
 
-        <!-- Columna 4 -->
         <div class="col">
           <div class="col-title">Síguenos</div>
 
@@ -97,51 +90,56 @@
 <script setup></script>
 
 <style scoped>
+.footer {
+  margin-top: auto;
+}
+
 .footer-top {
-  height: 180px;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
-  padding: 22px 60px;
-  font-size: 16px;
+  padding: 24px 20px;
+  font-size: 14px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 2.3fr 0.6fr 0.7fr 0.4fr;
-  gap: 50px;
+  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+  gap: 26px;
   align-items: start;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .brand-head {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .logo {
-  width: 70px;
-  height: 70px;
-  border-radius: 999px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
-.brand-name {
-  font-weight: 500;
-  line-height: 1.1;
+.brand-name,
+.col-title {
+  font-weight: 700;
   color: #d6b14a;
 }
 
 .brand-text {
   margin: 0;
-  line-height: 1.45;
-  text-align: justify;
+  line-height: 1.55;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .col-title {
-  font-size: 16px;
-  font-weight: 800;
-  color: #d6b14a;
+  font-size: 15px;
   margin-bottom: 10px;
   text-align: left;
 }
@@ -149,21 +147,21 @@
 .link-footer {
   display: block;
   color: #fff;
-  text-decoration: underline;
+  text-decoration: none;
   margin: 8px 0;
   text-align: left;
+  line-height: 1.5;
 }
 
 .link-footer:hover {
-  opacity: 0.8;
+  text-decoration: underline;
 }
 
 .link-footer.inline {
   display: inline;
-  margin-left: 6px;
+  margin: 0;
 }
 
-/* contact */
 .contact-item {
   display: flex;
   align-items: center;
@@ -171,23 +169,27 @@
   margin: 10px 0;
 }
 
-.icon {
-  width: 16px;
-  height: 16px;
-  opacity: 0.95;
+.contact-item-wrap {
+  align-items: flex-start;
 }
 
-/* social */
+.icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.9;
+  margin-top: 3px;
+}
+
 .social {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin-top: 8px;
 }
 
 .social-btn {
   width: 34px;
   height: 34px;
-  border-radius: 999px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -195,18 +197,57 @@
   border: 2px solid rgba(255, 255, 255, 0.35);
   color: #fff;
   text-decoration: none;
+  font-size: 18px;
 }
 
 .social-btn:hover {
-  border-color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(255, 255, 255, 0.65);
 }
 
-/* barra inferior */
 .footer-bottom {
-  height: 20px;
-  background: rgba(0, 0, 0, 0.75);
+  background: #1a1a1a;
   color: #fff;
   text-align: center;
-  padding: 10px 14px;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-top {
+    padding: 20px 16px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .brand-head,
+  .brand-text,
+  .col,
+  .col-title,
+  .link-footer {
+    text-align: center;
+  }
+
+  .brand-head {
+    flex-direction: column;
+  }
+
+  .contact-item,
+  .social {
+    justify-content: center;
+  }
 }
 </style>

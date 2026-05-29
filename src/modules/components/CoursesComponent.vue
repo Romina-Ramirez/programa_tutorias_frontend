@@ -38,16 +38,12 @@
           <div class="card-title">{{ getTitulo(c) }}</div>
 
           <div class="line"><span class="b">Materia:</span> {{ c.materia ?? '-' }}</div>
-
-          <br />
           <div class="line" v-if="c.fechaInicio">
-            <span class="b">Fecha de Inicio:</span> {{ c.fechaInicio }}
+            <span class="b">Fecha de inicio:</span> {{ c.fechaInicio }}
           </div>
           <div class="line" v-if="c.fechaFin">
-            <span class="b">Fecha de Fin:</span> {{ c.fechaFin }}
+            <span class="b">Fecha de fin:</span> {{ c.fechaFin }}
           </div>
-
-          <br />
           <div class="line" v-if="c.horario">
             <span class="b">Horario:</span>
             <div class="horario">{{ c.horario }}</div>
@@ -86,7 +82,6 @@ const props = defineProps({
 
 const router = useRouter()
 
-/** ✅ Keys para filtrar (EN) + Labels para mostrar (ES) */
 const ESTADOS = [
   { key: 'ACTIVE', label: 'Activo' },
   { key: 'IN_PROGRESS', label: 'En progreso' },
@@ -124,11 +119,6 @@ watch(
   { immediate: true },
 )
 
-/**
- * ✅ Normaliza cualquier cosa a las KEYS del backend:
- * ACTIVE | IN_PROGRESS | INACTIVE
- * (compat: ACTIVO/EN CURSO/FINALIZADO/etc)
- */
 function normalizeEstado(e) {
   const v = String(e ?? '')
     .trim()
@@ -138,20 +128,12 @@ function normalizeEstado(e) {
   if (v === 'ACTIVE') return 'ACTIVE'
   if (v === 'IN_PROGRESS') return 'IN_PROGRESS'
   if (v === 'INACTIVE') return 'INACTIVE'
-
-  // Compatibles con tus valores viejos en español
   if (v === 'ACTIVO') return 'ACTIVE'
   if (v === 'EN_CURSO' || v === 'EN_CURSO.' || v === 'EN_CURSO,' || v === 'EN_CURSO;')
     return 'IN_PROGRESS'
-  if (v === 'EN_CURSO' || v === 'EN_CURSO') return 'IN_PROGRESS'
-  if (v === 'EN_CURSO') return 'IN_PROGRESS'
-  if (v === 'EN_CURSO' || v === 'EN_CURSO') return 'IN_PROGRESS'
-  if (v === 'EN_CURSO' || v === 'ENCURSO') return 'IN_PROGRESS'
   if (v === 'EN_PROGRESO') return 'IN_PROGRESS'
   if (v === 'FINALIZADO') return 'INACTIVE'
   if (v === 'INACTIVO') return 'INACTIVE'
-
-  // fallback: si llega algo raro, lo devolvemos como está
   return v
 }
 
@@ -227,20 +209,18 @@ function irAlCurso(curso) {
 
 <style scoped>
 .wrap {
-  display: flex;
-  gap: 24px;
-  padding: 18px 20px;
-  background: transparent;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 20px;
+  padding: 16px;
   min-height: 420px;
   align-items: flex-start;
 }
 
 .filters {
-  width: 220px;
-  height: fit-content;
   background: #fff;
-  border-radius: 22px;
-  padding: 14px 14px 18px;
+  border-radius: 24px;
+  padding: 16px;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
 }
 
@@ -250,13 +230,12 @@ function irAlCurso(curso) {
 
 .search-input {
   width: 100%;
-  height: 34px;
-  border-radius: 18px;
+  min-height: 40px;
+  border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 0 12px;
+  padding: 0 14px;
   outline: none;
-  font-size: 16px;
-  box-sizing: border-box;
+  font-size: 15px;
 }
 
 .search-input:focus {
@@ -264,128 +243,137 @@ function irAlCurso(curso) {
   box-shadow: 0 0 0 3px rgba(27, 79, 120, 0.15);
 }
 
-.filter-block {
-  margin-top: 12px;
+.filter-block + .filter-block {
+  margin-top: 16px;
 }
 
 .filter-title {
   font-weight: 800;
-  font-size: 16px;
-  margin-bottom: 8px;
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #111827;
 }
 
 .check {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
-  margin: 8px 0;
+  font-size: 14px;
+  margin: 9px 0;
 }
 
 .muted {
-  font-size: 16px;
+  font-size: 14px;
   color: rgba(0, 0, 0, 0.6);
   margin: 10px 0 0;
 }
 
 .content {
-  flex: 1;
+  min-width: 0;
 }
 
 .messages {
   margin: 0 0 12px;
 }
+
 .msg {
   margin: 0 0 6px;
-  font-size: 16px;
-  color: #000;
+  font-size: 14px;
+  color: #374151;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .card {
-  width: 100%;
   background: #fff;
-  border-radius: 22px;
-  padding: 14px 18px 16px;
+  border-radius: 24px;
+  padding: 18px 18px 16px;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .card-title {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 16px;
-  letter-spacing: 0.4px;
-  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+  line-height: 1.35;
+  margin-bottom: 4px;
 }
 
 .line {
-  font-size: 16px;
-  margin: 4px 0;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .b {
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .horario {
-  margin-top: 2px;
-  font-size: 16px;
-  line-height: 1.25;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .estado {
-  margin-top: 10px;
-  font-weight: 900;
-  font-size: 16px;
-  letter-spacing: 0.3px;
+  margin-top: 6px;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  color: #004671;
 }
 
 .btn {
-  margin-top: 12px;
-  width: 170px;
-  height: 34px;
-  border-radius: 18px;
+  margin: 12px auto 0;
+  min-width: 160px;
+  min-height: 40px;
+  padding: 0 24px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #1b4f78;
+  background: #004671;
   color: #fff;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .btn:hover {
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 .empty {
   margin-top: 18px;
   text-align: center;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .pagination {
-  margin-top: 16px;
+  margin-top: 18px;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 14px;
+  flex-wrap: wrap;
 }
 
 .page-btn {
-  height: 34px;
+  min-height: 36px;
   padding: 0 14px;
-  border-radius: 14px;
+  border-radius: 999px;
   border: 0;
   cursor: pointer;
-  background: #1b4f78;
+  background: #004671;
   color: #fff;
-  font-weight: 500;
-  font-size: 16px;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .page-btn:disabled {
@@ -394,7 +382,39 @@ function irAlCurso(curso) {
 }
 
 .page-info {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
+}
+
+@media (max-width: 1080px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .wrap {
+    grid-template-columns: 1fr;
+    padding: 10px 6px;
+  }
+
+  .filters {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    border-radius: 20px;
+    padding: 16px 14px;
+  }
+
+  .btn {
+    width: 100%;
+  }
 }
 </style>

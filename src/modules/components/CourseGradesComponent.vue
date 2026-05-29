@@ -11,7 +11,13 @@
         </select>
       </div>
 
-      <button class="btn-action" type="button" @click="startAdd" :disabled="saving">
+      <button
+        v-if="isTutor && !isInactive"
+        class="btn-action"
+        type="button"
+        @click="startAdd"
+        :disabled="saving"
+      >
         Agregar calificaciones
       </button>
     </div>
@@ -139,6 +145,7 @@ const props = defineProps({
   saving: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   maxScore: { type: Number, default: 20 },
+  isInactive: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['save-grade', 'load-student-grades'])
@@ -380,15 +387,15 @@ function saveActivity() {
 }
 
 .btn-action {
-  width: 220px;
+  width: 200px;
   height: 44px;
-  border-radius: 22px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .btn-action:disabled {
@@ -412,19 +419,19 @@ function saveActivity() {
 }
 
 .table th {
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
-  font-size: 16px;
-  font-weight: 800;
-  padding: 20px 10px;
-  border: 2px solid #000000;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 16px 12px;
+  border: 1px solid #000;
 }
 
 .table td {
   background: #fff;
-  border: 2px solid #000;
-  padding: 16px 12px;
-  font-size: 16px;
+  border: 1px solid #000;
+  padding: 14px 12px;
+  font-size: 15px;
 }
 
 .w-activity {

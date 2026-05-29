@@ -1,11 +1,6 @@
 <template>
   <section class="reports">
-    <button
-      class="btn-add"
-      type="button"
-      @click="openModal"
-      :disabled="saving"
-    >
+    <button class="btn-add" type="button" @click="openModal" :disabled="saving">
       {{ saving ? 'Guardando...' : 'Agregar reporte' }}
     </button>
 
@@ -25,7 +20,7 @@
     </div>
 
     <div
-      v-if="showModal"
+      v-if="showModal && !isInactive"
       class="overlay"
       role="dialog"
       aria-modal="true"
@@ -60,7 +55,12 @@
           <p v-if="minutesMsg" class="err">{{ minutesMsg }}</p>
         </div>
 
-        <button class="btn-submit" type="button" :disabled="submitDisabled || saving" @click="submitReport">
+        <button
+          class="btn-submit"
+          type="button"
+          :disabled="submitDisabled || saving"
+          @click="submitReport"
+        >
           {{ saving ? 'Ingresando...' : 'Ingresar Reporte' }}
         </button>
       </div>
@@ -75,6 +75,7 @@ const props = defineProps({
   reports: { type: Array, default: () => [] },
   saving: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
+  isInactive: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['save-report'])
@@ -236,20 +237,20 @@ function formatDateTime(d) {
 <style scoped>
 .reports {
   width: 100%;
-  padding: 20px 40px 40px;
+  padding: 20px;
   box-sizing: border-box;
 }
 
 .btn-add {
-  height: 42px;
-  padding: 0 26px;
-  border-radius: 22px;
+  height: 40px;
+  padding: 0 24px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .btn-add:hover {
@@ -385,16 +386,16 @@ function formatDateTime(d) {
 
 .btn-submit {
   display: block;
-  margin: 18px auto 0;
+  margin: 20px auto 0;
   height: 44px;
-  padding: 0 28px;
-  border-radius: 22px;
+  padding: 0 32px;
+  border-radius: 8px;
   border: 0;
   cursor: pointer;
-  background: #0b4f77;
+  background: #004671;
   color: #fff;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .btn-submit:disabled {

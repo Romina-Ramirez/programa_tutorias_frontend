@@ -1,12 +1,13 @@
 <template>
-  <main>
+  <main class="home-page">
     <section class="hero-carousel" aria-label="Carrusel de inicio">
       <button class="tap-zone left" type="button" aria-label="Anterior" @click="prev" />
       <button class="tap-zone right" type="button" aria-label="Siguiente" @click="next" />
 
       <div class="track" :style="trackStyle">
-        <div v-for="(s, i) in slides" :key="i" class="slide" :style="{ backgroundColor: s.bg }">
-          <div class="content">
+        <div v-for="(s, i) in slides" :key="i" class="slide">
+          <div class="hero-card">
+            <div class="hero-kicker">Programa de Tutorías</div>
             <h2 class="title">{{ s.title }}</h2>
             <p v-if="s.subtitle" class="subtitle">{{ s.subtitle }}</p>
           </div>
@@ -27,7 +28,9 @@
     </section>
 
     <section class="courses-section">
-      <div class="courses-title">Cursos Disponibles</div>
+      <div class="courses-band">
+        <h3 class="courses-title">Cursos disponibles</h3>
+      </div>
 
       <div class="wrap-local">
         <p v-if="loadingCourses" class="state-text">Cargando cursos...</p>
@@ -50,13 +53,15 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import CoursesCard from '../components/CoursesComponent.vue'
-
 import { getAvailableCourses } from '../helpers/studentHelper'
 
 const slides = [
-  { title: 'Bienvenido al Programa de Tutorías', subtitle: '', bg: '#e1f4ff' },
-  { title: 'Encuentra cursos disponibles', subtitle: 'y elige tu tutor', bg: '#fff5f5' },
-  { title: 'Aprende a tu ritmo', subtitle: 'mejora tus resultados', bg: '#e9e9e9' },
+  {
+    title: 'Bienvenido al Programa de Tutorías',
+    subtitle: 'Encontrá acompañamiento académico en un solo lugar.',
+  },
+  { title: 'Explorá cursos y tutores', subtitle: 'Inscribite fácilmente y seguí tu progreso.' },
+  { title: 'Aprendé a tu ritmo', subtitle: 'Accedé a foros, calificaciones y reuniones.' },
 ]
 
 function readAuth() {
@@ -73,7 +78,6 @@ const auth = ref(readAuth())
 const userIdForAvailable = computed(() => auth.value?.userId ?? 0)
 
 const current = ref(0)
-
 const trackStyle = computed(() => ({
   transform: `translateX(-${current.value * 100}%)`,
 }))
@@ -81,9 +85,11 @@ const trackStyle = computed(() => ({
 function next() {
   current.value = (current.value + 1) % slides.length
 }
+
 function prev() {
   current.value = (current.value - 1 + slides.length) % slides.length
 }
+
 function goTo(i) {
   current.value = i
 }
@@ -138,9 +144,7 @@ async function loadAvailableCourses() {
 
 onMounted(async () => {
   intervalId = setInterval(next, 6000)
-
   auth.value = readAuth()
-
   await loadAvailableCourses()
 })
 
@@ -150,11 +154,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.home-page {
+  background: #ffffff;
+}
+
 .hero-carousel {
   position: relative;
   width: 100%;
-  height: 50vh;
+  min-height: 280px;
   overflow: hidden;
+  background: #ffffff;
 }
 
 .track {
@@ -166,36 +175,51 @@ onBeforeUnmount(() => {
 
 .slide {
   min-width: 100%;
-  height: 100%;
+  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 40px 20px;
 }
 
-.content {
-  width: min(900px, 80%);
+.hero-card {
+  width: 100%;
+  min-height: 140px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 40px 28px;
   text-align: center;
-  padding: 0 60px;
+}
+
+.hero-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #004671;
+  margin-bottom: 14px;
 }
 
 .title {
   margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  color: #000;
+  font-size: 28px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #111827;
 }
 
 .subtitle {
-  margin: 8px 0 0;
-  font-size: 18px;
-  color: rgba(0, 0, 0, 0.7);
+  margin: 12px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+  color: rgba(17, 24, 39, 0.72);
 }
 
 .tap-zone {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 5%;
+  width: 7%;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -205,13 +229,14 @@ onBeforeUnmount(() => {
 .tap-zone.left {
   left: 0;
 }
+
 .tap-zone.right {
   right: 0;
 }
 
 .dots {
   position: absolute;
-  bottom: 12px;
+  bottom: 18px;
   left: 0;
   right: 0;
   display: flex;
@@ -221,35 +246,40 @@ onBeforeUnmount(() => {
 }
 
 .dot {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
   border-radius: 999px;
   border: 0;
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 70, 113, 0.25);
 }
 
 .dot.active {
-  background: rgba(0, 0, 0, 0.75);
+  background: #004671;
 }
 
 .courses-section {
-  background: #0b4f77;
-  padding: 18px 40px 26px;
+  padding: 0 18px 36px;
+}
+
+.courses-band {
+  background: #004671;
+  border-radius: 24px 24px 0 0;
+  padding: 16px 20px;
 }
 
 .courses-title {
   color: #fff;
   text-align: center;
   font-weight: 700;
-  font-size: 16px;
-  margin-bottom: 10px;
+  font-size: 18px;
+  margin: 0;
 }
 
 .wrap-local {
-  background: #d9d9d9;
-  border-radius: 22px;
-  padding: 14px;
+  background: #e0e0e0;
+  border-radius: 0 0 24px 24px;
+  padding: 20px;
 }
 
 .state-text {
@@ -259,7 +289,49 @@ onBeforeUnmount(() => {
 }
 
 .courses-section :deep(.wrap) {
-  background: #d9d9d9;
-  border-radius: 22px;
+  padding: 10px 8px 4px;
+}
+
+@media (max-width: 768px) {
+  .hero-carousel,
+  .slide {
+    min-height: 300px;
+  }
+
+  .hero-card {
+    min-height: auto;
+    padding: 26px 20px;
+    border-radius: 24px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+  }
+
+  .courses-section {
+    padding: 0 12px 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .slide {
+    padding-inline: 14px;
+  }
+
+  .hero-card {
+    padding: 22px 18px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .tap-zone {
+    width: 12%;
+  }
 }
 </style>

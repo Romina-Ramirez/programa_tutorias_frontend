@@ -1,7 +1,7 @@
 <template>
   <main class="page-form">
     <section class="card">
-      <p class="text-form">Bienvenido</p>
+      <h1 class="form-title">Inicia Sesión</h1>
 
       <form class="form" @submit.prevent="onSubmit">
         <div class="input-box" :class="{ filled: email }">
@@ -37,6 +37,7 @@
           {{ loading ? 'Ingresando...' : 'Inicia Sesión' }}
         </button>
 
+        <p v-if="infoMessage && !error" class="success" role="status">{{ infoMessage }}</p>
         <p v-if="error" class="error" role="alert">{{ error }}</p>
       </form>
     </section>
@@ -44,10 +45,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { login } from '../helpers/authenticationHelper'
+import { extractApiErrorMessage, getDefaultRouteByRole, saveAuth } from '../helpers/authSession'
 
+const route = useRoute()
 const router = useRouter()
 
 const email = ref('')
@@ -57,13 +60,24 @@ const showPassword = ref(false)
 const loading = ref(false)
 const error = ref('')
 
-function redirectByRole(role) {
-  if (role === 'STUDENT') return router.push('/')
-  if (role === 'TUTOR') return router.push('/misCursos')
-  if (role === 'ADMIN') return router.push('/admin')
-  if (role === 'SUPER_ADMIN') return router.push('/superAdmin')
+const infoMessage = computed(() => {
+  if (route.query.reason === 'session-expired') {
+    return 'Tu sesión venció. Iniciá sesión nuevamente para continuar.'
+  }
 
-  return router.push('/')
+  if (route.query.reason === 'auth-required') {
+    return 'Debés iniciar sesión para acceder a esa sección.'
+  }
+
+  return ''
+})
+
+function redirectByRole(role) {
+  const redirect = String(route.query.redirect ?? '').trim()
+
+  if (redirect) return router.push(redirect)
+
+  return router.push(getDefaultRouteByRole(role))
 }
 
 async function onSubmit() {
@@ -77,22 +91,22 @@ async function onSubmit() {
       password: password.value,
     })
 
-    localStorage.setItem(
-      'auth',
-      JSON.stringify({
-        isAuthenticated: true,
-        userId: res?.userId,
-        role: res?.role,
-        name: res?.name,
-        lastName: res?.lastName,
-      }),
-    )
+    saveAuth({
+      isAuthenticated: true,
+      userId: res?.userId,
+      role: res?.role,
+      name: res?.name,
+      lastName: res?.lastName,
+      email: res?.email,
+      accessToken: res?.accessToken,
+      refreshToken: res?.refreshToken,
+    })
 
     window.dispatchEvent(new Event('storage'))
 
     await redirectByRole(res?.role)
   } catch (e) {
-    error.value = e?.response?.data || 'Ocurrió un error. Vuelva a intentarlo más tarde.'
+    error.value = extractApiErrorMessage(e, 'Ocurrió un error. Vuelva a intentarlo más tarde.')
   } finally {
     loading.value = false
   }
@@ -100,7 +114,9 @@ async function onSubmit() {
 </script>
 
 <style scoped>
-.form {
-  align-items: unset;
+.login-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 </style>

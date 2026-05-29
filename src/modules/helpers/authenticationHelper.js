@@ -2,7 +2,7 @@ import api from '../api/ApiConfig'
 
 /**
  * POST /authentication/login
- * @param {Object} payload { email, password }
+ * @param {Object} payload { email?, password, token? }
  * @returns {LoginResponseDTO}
  */
 export const login = async (payload) => {

@@ -1,10 +1,8 @@
 import api from '../api/ApiConfig'
 
-// MIS CURSOS
-
 /**
  * GET /tutor/{userId}/courses
- * Listar cursos del tutor
+ * Obtener cursos del tutor
  */
 export const getMyCourses = async (userId) => {
   const { data } = await api.get(`/tutor/${userId}/courses`)
@@ -13,25 +11,21 @@ export const getMyCourses = async (userId) => {
 
 /**
  * GET /tutor/{userId}/courses/{courseId}
- * Detalle del curso
+ * Obtener detalle de curso del tutor
  */
 export const getCourseDetail = async (userId, courseId) => {
   const { data } = await api.get(`/tutor/${userId}/courses/${courseId}`)
   return data
 }
 
-// ESTUDIANTES
-
 /**
  * GET /tutor/{userId}/courses/{courseId}/students
- * Estudiantes inscritos
+ * Obtener estudiantes inscriptos
  */
 export const getEnrolledStudents = async (userId, courseId) => {
   const { data } = await api.get(`/tutor/${userId}/courses/${courseId}/students`)
   return data
 }
-
-// CALIFICACIONES
 
 /**
  * POST /tutor/{userId}/courses/{courseId}/students/{studentId}/grades
@@ -46,19 +40,8 @@ export const addGrade = async (userId, courseId, studentId, payload) => {
 }
 
 /**
- * GET /tutor/{userId}/courses/{courseId}/grades/activity/{activity}
- * Obtener calificaciones por actividad
- */
-export const getGradesByActivity = async (userId, courseId, activity) => {
-  const { data } = await api.get(
-    `/tutor/${userId}/courses/${courseId}/grades/activity/${encodeURIComponent(activity)}`,
-  )
-  return data
-}
-
-/**
  * GET /tutor/{userId}/courses/{courseId}/students/{studentId}/grades
- * Obtener calificaciones de un estudiante en un curso
+ * Obtener calificaciones por estudiante
  */
 export const getGradesByStudent = async (userId, courseId, studentId) => {
   const { data } = await api.get(
@@ -66,8 +49,6 @@ export const getGradesByStudent = async (userId, courseId, studentId) => {
   )
   return data
 }
-
-// REPORTES
 
 /**
  * POST /tutor/{userId}/courses/{courseId}/reports
@@ -80,9 +61,27 @@ export const addReport = async (userId, courseId, payload) => {
 
 /**
  * GET /tutor/{userId}/courses/{courseId}/reports
- * Listar reportes por curso
+ * Obtener reportes por curso
  */
 export const getReportsByCourse = async (userId, courseId) => {
   const { data } = await api.get(`/tutor/${userId}/courses/${courseId}/reports`)
+  return data
+}
+
+/**
+ * GET /tutor/{userId}/profile
+ * Obtener perfil del tutor
+ */
+export const getTutorProfile = async (userId) => {
+  const { data } = await api.get(`/tutor/${userId}/profile`)
+  return data
+}
+
+/**
+ * PUT /tutor/{userId}/profile
+ * Actualizar perfil del tutor
+ */
+export const updateTutorProfile = async (userId, payload) => {
+  const { data } = await api.put(`/tutor/${userId}/profile`, payload)
   return data
 }
