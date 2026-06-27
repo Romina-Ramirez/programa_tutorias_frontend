@@ -7,9 +7,14 @@
     <section class="info-band">
       <p class="info-text">A continuación se muestran los tutores registrados por usted:</p>
 
-      <button class="btn-pill btn-pill-light" type="button" @click="openAddTutor">
-        Agregar nuevo tutor
-      </button>
+      <div class="info-actions">
+        <button class="btn-pill btn-pill-light" type="button" @click="openAddTutor">
+          Agregar nuevo tutor
+        </button>
+        <button class="btn-pill btn-pill-light" type="button" @click="openActivateTutor">
+          Activar tutor
+        </button>
+      </div>
     </section>
 
     <section class="shell">
@@ -102,6 +107,15 @@
                     ? 'Guardar'
                     : 'Editar'
               }}
+            </button>
+
+            <button
+              class="btn-pill"
+              type="button"
+              @click="deactivateTutorRow(t)"
+              :disabled="busy.deactivateTutorId === t.id"
+            >
+              {{ busy.deactivateTutorId === t.id ? 'Desactivando...' : 'Desactivar' }}
             </button>
 
             <button class="btn-pill" type="button" @click="openDeleteTutor(t)">Eliminar</button>
@@ -229,9 +243,9 @@
 
         <div class="modal-body">
           <p class="modal-text">
-            ¿Está seguro de que quiere eliminar al tutor/a
+            ¿Está seguro de que quiere eliminar definitivamente al tutor/a
             <strong>{{ deletingTutor?.nombre }} {{ deletingTutor?.apellido }}</strong
-            >?
+            >? Solo se podrá eliminar si no tiene cursos asociados; de lo contrario, desactívelo.
           </p>
 
           <p v-if="deleteTutorError" class="modal-error">{{ deleteTutorError }}</p>
@@ -534,6 +548,40 @@
         </div>
       </div>
     </div>
+    <!-- MODAL: Activar tutor -->
+    <div v-if="activateTutorOpen" class="modal-overlay">
+      <div class="modal">
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Cerrar"
+          @click="closeActivateTutor"
+          :disabled="busy.activateTutor"
+        >
+          ×
+        </button>
+
+        <form class="modal-body" @submit.prevent="confirmActivateTutor">
+          <p class="modal-text">Ingrese la cédula del tutor que desea activar:</p>
+
+          <input
+            class="modal-input"
+            type="text"
+            inputmode="numeric"
+            placeholder="Cédula"
+            v-model.trim="activateTutorCedula"
+            :disabled="busy.activateTutor"
+            @input="activateTutorCedula = sanitizeDigits(activateTutorCedula)"
+          />
+
+          <p v-if="activateTutorError" class="modal-error">{{ activateTutorError }}</p>
+
+          <button class="btn-pill" type="submit" :disabled="busy.activateTutor">
+            {{ busy.activateTutor ? 'Activando...' : 'Activar tutor' }}
+          </button>
+        </form>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -544,7 +592,9 @@ import {
   activateTutor as activateTutorApi,
   listMyTutors,
   updateTutor as updateTutorApi,
-  deleteTutor as deleteTutorApi,
+  deactivateTutor as deactivateTutorApi,
+  hardDeleteTutor as hardDeleteTutorApi,
+  activateTutorByIdCard,
   createCourse as createCourseApi,
   listCoursesByTutor,
   updateCourse as updateCourseApi,
@@ -556,6 +606,8 @@ const busy = reactive({
   addTutor: false,
   updateTutorId: null,
   activateTutorId: null,
+  deactivateTutorId: null,
+  activateTutor: false,
   deleteTutor: false,
   loadCourses: false,
   saveCourse: false,
@@ -848,13 +900,64 @@ async function confirmDeleteTutor() {
   if (!deletingTutor.value || busy.deleteTutor) return
   try {
     busy.deleteTutor = true
-    await deleteTutorApi(adminUserId.value, deletingTutor.value.id)
+    await hardDeleteTutorApi(adminUserId.value, deletingTutor.value.id)
     tutors.value = tutors.value.filter((x) => x.id !== deletingTutor.value.id)
     closeDeleteTutor()
   } catch (e) {
     deleteTutorError.value = e?.response?.data || 'Ocurrió un error. Vuelva a intentarlo más tarde.'
   } finally {
     busy.deleteTutor = false
+  }
+}
+
+async function deactivateTutorRow(t) {
+  if (busy.deactivateTutorId === t.id) return
+  tutorErrors[t.id] = ''
+
+  try {
+    busy.deactivateTutorId = t.id
+    await deactivateTutorApi(adminUserId.value, t.id)
+    tutors.value = tutors.value.filter((x) => x.id !== t.id)
+  } catch (e) {
+    tutorErrors[t.id] = e?.response?.data || 'No se pudo desactivar el tutor.'
+  } finally {
+    busy.deactivateTutorId = null
+  }
+}
+
+const activateTutorOpen = ref(false)
+const activateTutorError = ref('')
+const activateTutorCedula = ref('')
+
+function openActivateTutor() {
+  activateTutorError.value = ''
+  activateTutorCedula.value = ''
+  activateTutorOpen.value = true
+}
+
+function closeActivateTutor() {
+  activateTutorOpen.value = false
+}
+
+async function confirmActivateTutor() {
+  const ced = sanitizeDigits(activateTutorCedula.value)
+  if (!ced) {
+    activateTutorError.value = 'Debe ingresar la cédula.'
+    return
+  }
+  if (busy.activateTutor) return
+
+  try {
+    busy.activateTutor = true
+    const dto = await activateTutorByIdCard(adminUserId.value, ced)
+    const mapped = mapTutorDto(dto)
+    tutors.value.push(mapped)
+    hydrateEditMap([mapped])
+    closeActivateTutor()
+  } catch (e) {
+    activateTutorError.value = e?.response?.data || 'No se pudo activar el tutor.'
+  } finally {
+    busy.activateTutor = false
   }
 }
 
@@ -1132,6 +1235,7 @@ function closeAllModals() {
   coursesOpen.value = false
   courseFormOpen.value = false
   reportOpen.value = false
+  activateTutorOpen.value = false
 }
 
 function onKeydown(e) {
@@ -1156,6 +1260,12 @@ watch(selectedTutorId, () => {
 </script>
 
 <style scoped>
+.info-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* Grid específico para tutores (8 columnas) */
 .table-head {
   grid-template-columns: 120px 1fr 1fr 1.2fr 100px 1fr 1fr 50px;

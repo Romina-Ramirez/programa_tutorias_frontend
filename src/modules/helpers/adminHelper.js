@@ -47,6 +47,35 @@ export const deleteTutor = async (adminUserId, tutorId) => {
   return data
 }
 
+/**
+ * PUT /admin/{adminUserId}/tutors/{tutorId}/deactivate
+ * Desactivar tutor (soft-delete): desaparece de la lista pero queda en BD.
+ */
+export const deactivateTutor = async (adminUserId, tutorId) => {
+  const { data } = await api.put(`/admin/${adminUserId}/tutors/${tutorId}/deactivate`)
+  return data
+}
+
+/**
+ * DELETE /admin/{adminUserId}/tutors/{tutorId}/hard
+ * Eliminar tutor definitivamente. Solo si no tiene cursos asociados.
+ */
+export const hardDeleteTutor = async (adminUserId, tutorId) => {
+  const { data } = await api.delete(`/admin/${adminUserId}/tutors/${tutorId}/hard`)
+  return data
+}
+
+/**
+ * PUT /admin/{adminUserId}/tutors/reactivate?idCard=
+ * Reactivar un tutor desactivado por cédula.
+ */
+export const activateTutorByIdCard = async (adminUserId, idCard) => {
+  const { data } = await api.put(`/admin/${adminUserId}/tutors/reactivate`, null, {
+    params: { idCard },
+  })
+  return data
+}
+
 // RELACIONADOS CON CURSOS
 
 /**

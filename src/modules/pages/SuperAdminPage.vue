@@ -7,9 +7,14 @@
     <section class="info-band">
       <p class="info-text">A continuación se muestran los administradores registrados por usted:</p>
 
-      <button class="btn-pill btn-pill-light" type="button" @click="openAdd">
-        Agregar nuevo admin
-      </button>
+      <div class="info-actions">
+        <button class="btn-pill btn-pill-light" type="button" @click="openAdd">
+          Agregar nuevo admin
+        </button>
+        <button class="btn-pill btn-pill-light" type="button" @click="openActivate">
+          Activar admin
+        </button>
+      </div>
     </section>
 
     <section class="shell">
@@ -61,6 +66,15 @@
                       ? 'Guardar'
                       : 'Editar'
                 }}
+              </button>
+
+              <button
+                class="btn-pill"
+                type="button"
+                @click="deactivateAdminRow(a)"
+                :disabled="busy.deactivateAdminId === a.id"
+              >
+                {{ busy.deactivateAdminId === a.id ? 'Desactivando...' : 'Desactivar' }}
               </button>
 
               <button class="btn-pill" type="button" @click="openDelete(a)">Eliminar</button>
@@ -188,6 +202,37 @@
         </div>
       </div>
     </div>
+    <div v-if="activateOpen" class="modal-overlay">
+      <div class="modal">
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Cerrar"
+          @click="closeActivate"
+          :disabled="busy.activateAdmin"
+        >
+          ×
+        </button>
+
+        <form class="modal-body" @submit.prevent="confirmActivate">
+          <p class="modal-text">Ingrese la cédula del administrador que desea activar:</p>
+
+          <input
+            class="modal-input"
+            type="text"
+            placeholder="Cédula"
+            v-model.trim="activateCedula"
+            :disabled="busy.activateAdmin"
+          />
+
+          <p v-if="activateError" class="modal-error">{{ activateError }}</p>
+
+          <button class="btn-pill" type="submit" :disabled="busy.activateAdmin">
+            {{ busy.activateAdmin ? 'Activando...' : 'Activar administrador' }}
+          </button>
+        </form>
+      </div>
+    </div>
   </main>
 </template>
 
@@ -197,7 +242,9 @@ import {
   createAdmin as createAdminApi,
   listMyAdmins,
   updateAdmin as updateAdminApi,
-  deleteAdmin as deleteAdminApi,
+  deactivateAdmin as deactivateAdminApi,
+  hardDeleteAdmin as hardDeleteAdminApi,
+  activateAdminByIdCard,
   getTutorCountByAdminId,
 } from '../helpers/superAdminHelper'
 
@@ -249,6 +296,8 @@ const busy = reactive({
   addAdmin: false,
   updateAdminId: null,
   deleteAdmin: false,
+  deactivateAdminId: null,
+  activateAdmin: false,
 })
 
 function hydrateEditMaps(list) {
@@ -443,9 +492,9 @@ async function confirmDelete() {
     busy.deleteAdmin = true
 
     if (tutorCountForDelete.value > 0) {
-      await deleteAdminApi(idToDelete, reassignToId.value)
+      await hardDeleteAdminApi(idToDelete, reassignToId.value)
     } else {
-      await deleteAdminApi(idToDelete, null)
+      await hardDeleteAdminApi(idToDelete, null)
     }
 
     admins.value = admins.value.filter((x) => x.id !== idToDelete)
@@ -464,9 +513,66 @@ async function confirmDelete() {
   }
 }
 
+async function deactivateAdminRow(a) {
+  if (busy.deactivateAdminId === a.id) return
+  rowErrors[a.id] = ''
+
+  try {
+    busy.deactivateAdminId = a.id
+    await deactivateAdminApi(a.id)
+
+    admins.value = admins.value.filter((x) => x.id !== a.id)
+    delete editNombreMap[a.id]
+    delete editApellidoMap[a.id]
+    delete rowErrors[a.id]
+    if (editingId.value === a.id) editingId.value = null
+  } catch (e) {
+    rowErrors[a.id] = e?.response?.data || 'No se pudo desactivar el administrador.'
+  } finally {
+    busy.deactivateAdminId = null
+  }
+}
+
+const activateOpen = ref(false)
+const activateError = ref('')
+const activateCedula = ref('')
+
+function openActivate() {
+  activateError.value = ''
+  activateCedula.value = ''
+  activateOpen.value = true
+}
+
+function closeActivate() {
+  activateOpen.value = false
+}
+
+async function confirmActivate() {
+  const ced = String(activateCedula.value ?? '').trim()
+  if (!ced) {
+    activateError.value = 'Debe ingresar la cédula.'
+    return
+  }
+  if (busy.activateAdmin) return
+
+  try {
+    busy.activateAdmin = true
+    const dto = await activateAdminByIdCard(ced)
+    const mapped = mapAdminDto(dto)
+    admins.value.push(mapped)
+    hydrateEditMaps([mapped])
+    closeActivate()
+  } catch (e) {
+    activateError.value = e?.response?.data || 'No se pudo activar el administrador.'
+  } finally {
+    busy.activateAdmin = false
+  }
+}
+
 function closeAllModals() {
   addOpen.value = false
   deleteOpen.value = false
+  activateOpen.value = false
 }
 
 function onKeydown(e) {
@@ -492,7 +598,7 @@ onBeforeUnmount(() => {
 
 /* Grid específico para admins (5 columnas) */
 .table-head {
-  grid-template-columns: 1fr 1fr 1fr 1fr 280px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 360px;
   background: #eceff2;
   border-radius: 18px;
 }
@@ -506,7 +612,7 @@ onBeforeUnmount(() => {
 }
 
 .card-table {
-  grid-template-columns: 1fr 1fr 1fr 1fr 280px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 360px;
   border-radius: 18px;
   padding: 14px 18px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
@@ -520,6 +626,12 @@ onBeforeUnmount(() => {
 .cell-input:disabled {
   background: #f5f5f5;
   color: #333333;
+}
+
+.info-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .btn-pill-light {

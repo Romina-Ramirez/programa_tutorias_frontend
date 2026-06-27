@@ -46,3 +46,34 @@ export const deleteAdmin = async (adminId, newAdminId) => {
   })
   return data
 }
+
+/**
+ * PUT /superadmin/admins/{adminId}/deactivate
+ * Desactivar admin (soft-delete): desaparece de la lista pero queda en BD.
+ */
+export const deactivateAdmin = async (adminId) => {
+  const { data } = await api.put(`/superadmin/admins/${adminId}/deactivate`)
+  return data
+}
+
+/**
+ * DELETE /superadmin/admins/{adminId}/hard
+ * Eliminar admin definitivamente. Si tiene tutores activos, newAdminId reasigna.
+ */
+export const hardDeleteAdmin = async (adminId, newAdminId) => {
+  const { data } = await api.delete(`/superadmin/admins/${adminId}/hard`, {
+    params: { newAdminId },
+  })
+  return data
+}
+
+/**
+ * PUT /superadmin/admins/reactivate?idCard=
+ * Reactivar un admin desactivado por cédula.
+ */
+export const activateAdminByIdCard = async (idCard) => {
+  const { data } = await api.put(`/superadmin/admins/reactivate`, null, {
+    params: { idCard },
+  })
+  return data
+}
