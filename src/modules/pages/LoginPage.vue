@@ -38,6 +38,7 @@
         </button>
 
         <p v-if="infoMessage && !error" class="success" role="status">{{ infoMessage }}</p>
+        <p v-if="wakingMessage && !error" class="success" role="status">{{ wakingMessage }}</p>
         <p v-if="error" class="error" role="alert">{{ error }}</p>
       </form>
     </section>
@@ -45,9 +46,10 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { login } from '../helpers/authenticationHelper'
+import { warmUpServer } from '../api/ApiConfig'
 import { extractApiErrorMessage, getDefaultRouteByRole, saveAuth } from '../helpers/authSession'
 
 const route = useRoute()
@@ -59,6 +61,13 @@ const showPassword = ref(false)
 
 const loading = ref(false)
 const error = ref('')
+const wakingMessage = ref('')
+let wakingTimer = null
+
+// Despierta el backend (cold start de Render free) mientras el usuario escribe.
+onMounted(() => {
+  warmUpServer()
+})
 
 const infoMessage = computed(() => {
   if (route.query.reason === 'session-expired') {
@@ -82,6 +91,12 @@ function redirectByRole(role) {
 
 async function onSubmit() {
   error.value = ''
+  wakingMessage.value = ''
+
+  // Si tarda (cold start), avisamos para que no parezca que se colgó.
+  wakingTimer = setTimeout(() => {
+    wakingMessage.value = 'El servidor está despertando, esto puede tardar hasta 1 minuto la primera vez…'
+  }, 4000)
 
   try {
     loading.value = true
@@ -109,6 +124,8 @@ async function onSubmit() {
     error.value = extractApiErrorMessage(e, 'Ocurrió un error. Vuelva a intentarlo más tarde.')
   } finally {
     loading.value = false
+    clearTimeout(wakingTimer)
+    wakingMessage.value = ''
   }
 }
 </script>

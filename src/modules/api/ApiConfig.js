@@ -3,11 +3,23 @@ import { clearAuth, readAuth, saveAuth } from '../helpers/authSession'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/API/Tutorias',
-  timeout: 10000,
+  // Render free "duerme" el servicio tras ~15 min de inactividad y tarda ~50s en
+  // despertar. Con 10s la primera petición tras inactividad expiraba ("timeout of
+  // 10000ms exceeded"). 60s tolera el cold start.
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
+/**
+ * Despierta el backend (cold start de Render free) sin bloquear ni redirigir.
+ * Se llama al montar la pantalla de login para que el servidor ya esté despierto
+ * cuando el usuario envíe sus credenciales. Usa axios "pelado" (sin interceptores)
+ * para que un eventual error no dispare el redirect de sesión.
+ */
+export const warmUpServer = () =>
+  axios.get(`${api.defaults.baseURL}/ping`, { timeout: 60000 }).catch(() => {})
 
 function notifyAuthChanged() {
   window.dispatchEvent(new Event('storage'))
