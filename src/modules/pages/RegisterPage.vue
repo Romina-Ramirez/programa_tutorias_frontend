@@ -112,8 +112,8 @@ async function onSubmit() {
     error.value = 'Debe ingresar la cédula.'
     return
   }
-  if (cedulaVal.length < 7 || cedulaVal.length > 9) {
-    error.value = 'La cédula debe tener entre 7 y 9 dígitos.'
+  if (cedulaVal.length !== 10) {
+    error.value = 'La cédula debe tener 10 dígitos.'
     return
   }
 
@@ -126,7 +126,7 @@ async function onSubmit() {
     loading.value = true
 
     await registerStudent({
-      idCard: cedula.value.trim(),
+      idCard: cedulaVal,
       name: nombre.value.trim(),
       lastName: apellido.value.trim(),
       email: email.value.trim(),
