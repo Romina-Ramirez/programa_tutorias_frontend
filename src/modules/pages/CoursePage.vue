@@ -178,7 +178,7 @@ function mapGradeDto(dto) {
   return {
     id: dto?.id ?? null,
     activity: dto?.activity ?? '',
-    score: dto?.score ?? dto?.grade ?? '',
+    score: dto?.qualification ?? dto?.score ?? dto?.grade ?? '',
     max: dto?.maxScore ?? dto?.max ?? 20,
     observations: dto?.observations ?? '',
   }
@@ -378,8 +378,7 @@ async function handleSaveGrade(rows) {
     for (const row of rows) {
       await addGrade(userId.value, courseId.value, row.studentId, {
         activity: row.activity,
-        score: row.score,
-        maxScore: row.max,
+        qualification: row.score,
         observations: row.observations,
       })
     }

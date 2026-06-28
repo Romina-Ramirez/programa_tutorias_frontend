@@ -407,6 +407,14 @@ textarea {
   text-align: center;
 }
 
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
 /* Botón chevron para expandir */
 .chev-btn {
   width: 36px;
@@ -484,5 +492,16 @@ textarea {
   .btn-pill,
   .btn-form {
     width: 100%;
+  }
+}
+
+/* Evita el zoom automatico de iOS al enfocar un input en movil:
+   con font-size >= 16px Safari no hace zoom. No se toca el meta viewport,
+   asi que el usuario conserva el zoom manual con los dedos. */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }

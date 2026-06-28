@@ -1311,6 +1311,12 @@ watch(selectedTutorId, () => {
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid #eee;
+  justify-content: space-between;
+}
+
+/* Que los botones se repartan a lo ancho de la fila en vez de quedar pegados a la izquierda */
+.actions-row .btn-pill {
+  flex: 1 1 auto;
 }
 
 /* Modal específicos */

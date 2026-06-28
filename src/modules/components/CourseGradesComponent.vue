@@ -24,15 +24,7 @@
 
     <div v-if="isTutor && mode === 'add'" class="topbar">
       <div class="left-controls">
-        <label class="lbl">Actividad:</label>
-
-        <input
-          v-model.trim="activityName"
-          class="input"
-          type="text"
-          placeholder="Actividad 3"
-          :disabled="saving"
-        />
+        <label class="lbl">Nueva calificación</label>
       </div>
 
       <div class="right-actions">
@@ -85,9 +77,10 @@
       <table v-else class="table">
         <thead>
           <tr>
-            <th class="w-activity">Estudiante</th>
+            <th class="w-student">Estudiante</th>
             <th class="w-score">Nota</th>
             <th class="w-max">Calificación máxima</th>
+            <th class="w-act">Actividad</th>
             <th class="w-obs">Observaciones</th>
           </tr>
         </thead>
@@ -117,6 +110,16 @@
             </td>
 
             <td class="cell-center b">{{ maxScore }}</td>
+
+            <td class="cell-left">
+              <input
+                class="cell-input cell-input-text"
+                type="text"
+                v-model.trim="draftRows[idx].activity"
+                placeholder="Actividad"
+                :disabled="saving"
+              />
+            </td>
 
             <td class="cell-left">
               <input
@@ -168,7 +171,6 @@ const normalizedStudents = computed(() =>
 
 const selectedStudentId = ref(null)
 const mode = ref('view')
-const activityName = ref('')
 const draftRows = ref([])
 
 watch(
@@ -200,10 +202,10 @@ const rowsToShow = computed(() => {
 
 function startAdd() {
   mode.value = 'add'
-  activityName.value = ''
   draftRows.value = normalizedStudents.value.map((s) => ({
     studentId: s.id,
     student: s.nombre,
+    activity: '',
     score: '',
     scoreError: '',
     observations: '',
@@ -212,7 +214,6 @@ function startAdd() {
 
 function cancelAdd() {
   mode.value = 'view'
-  activityName.value = ''
   draftRows.value = []
 }
 
@@ -305,9 +306,10 @@ function onScoreBlur(idx) {
 
 const saveDisabled = computed(() => {
   if (!isTutor.value) return true
-  if (String(activityName.value).trim().length === 0) return true
+  if (draftRows.value.length === 0) return true
 
   for (const r of draftRows.value) {
+    if (String(r.activity ?? '').trim().length === 0) return true
     const v = String(r.score ?? '').trim()
     if (v === '') return true
     if (v.endsWith('.')) return true
@@ -329,7 +331,7 @@ function saveActivity() {
     'save-grade',
     draftRows.value.map((r) => ({
       studentId: r.studentId,
-      activity: activityName.value.trim(),
+      activity: String(r.activity ?? '').trim(),
       score: Number(r.score),
       max: props.maxScore,
       observations: r.observations ?? '',
@@ -337,7 +339,6 @@ function saveActivity() {
   )
 
   mode.value = 'view'
-  activityName.value = ''
   draftRows.value = []
 }
 </script>
@@ -437,11 +438,17 @@ function saveActivity() {
 .w-activity {
   width: 35%;
 }
+.w-student {
+  width: 20%;
+}
 .w-score {
   width: 12%;
 }
 .w-max {
   width: 14%;
+}
+.w-act {
+  width: 22%;
 }
 .w-obs {
   width: 39%;
