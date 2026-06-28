@@ -692,8 +692,8 @@ function mapReportDto(dto) {
   return {
     id: pick(dto, ['id'], null),
     creado: pick(dto, ['created', 'creado', 'createdAt'], ''),
-    descripcion: pick(dto, ['description', 'descripcion'], ''),
-    minutos: Number(pick(dto, ['minutes', 'minutos', 'minutesCompleted'], 0)),
+    descripcion: pick(dto, ['activityDescription', 'description', 'descripcion'], ''),
+    minutos: Number(pick(dto, ['minutesCompleted', 'minutes', 'minutos'], 0)),
     courseId: pick(dto, ['courseId'], pick(dto?.course, ['id'], null)),
     courseName: pick(dto, ['courseName'], pick(dto?.course, ['name'], '')),
   }

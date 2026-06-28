@@ -188,8 +188,8 @@ function mapReportDto(dto) {
   return {
     id: dto?.id ?? null,
     createdAt: dto?.createdAt ?? dto?.created ?? new Date().toISOString(),
-    text: dto?.description ?? dto?.text ?? '',
-    minutes: dto?.minutes ?? dto?.minutesCompleted ?? 0,
+    text: dto?.activityDescription ?? dto?.description ?? dto?.text ?? '',
+    minutes: dto?.minutesCompleted ?? dto?.minutes ?? 0,
   }
 }
 
@@ -415,8 +415,8 @@ async function handleSaveReport(payload) {
   try {
     savingReport.value = true
     await addReport(userId.value, courseId.value, {
-      description: payload.description,
-      minutes: payload.minutes,
+      activityDescription: payload.description,
+      minutesCompleted: payload.minutes,
     })
     await loadReports()
   } catch (e) {
