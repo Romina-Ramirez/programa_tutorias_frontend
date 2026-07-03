@@ -10,6 +10,9 @@
             <div class="hero-kicker">Programa de Tutorías</div>
             <h2 class="title">{{ s.title }}</h2>
             <p v-if="s.subtitle" class="subtitle">{{ s.subtitle }}</p>
+            <button class="hero-cta" type="button" @click="scrollToCourses">
+              Ver cursos disponibles
+            </button>
           </div>
         </div>
       </div>
@@ -27,7 +30,7 @@
       </div>
     </section>
 
-    <section class="courses-section">
+    <section ref="coursesSectionEl" class="courses-section">
       <div class="courses-band">
         <h3 class="courses-title">Cursos disponibles</h3>
       </div>
@@ -43,7 +46,14 @@
             :mostrar-estado="false"
           />
 
-          <p v-else class="state-text">No hay cursos disponibles.</p>
+          <div v-else class="no-courses">
+            <FontAwesomeIcon class="no-courses-icon" :icon="['fas', 'graduation-cap']" />
+            <p class="no-courses-title">Aún no hay cursos disponibles</p>
+            <p class="no-courses-text">
+              Estamos preparando nuevas tutorías. Mantente atento a esta página: muy pronto
+              publicaremos más cursos para que puedas inscribirte.
+            </p>
+          </div>
         </template>
       </div>
     </section>
@@ -58,10 +68,10 @@ import { getAvailableCourses } from '../helpers/studentHelper'
 const slides = [
   {
     title: 'Bienvenido al Programa de Tutorías',
-    subtitle: 'Encontrá acompañamiento académico en un solo lugar.',
+    subtitle: 'Encuentra acompañamiento académico en un solo lugar.',
   },
-  { title: 'Explorá cursos y tutores', subtitle: 'Inscribite fácilmente y seguí tu progreso.' },
-  { title: 'Aprendé a tu ritmo', subtitle: 'Accedé a foros, calificaciones y reuniones.' },
+  { title: 'Explora cursos y tutores', subtitle: 'Inscríbete fácilmente y sigue tu progreso.' },
+  { title: 'Aprende a tu ritmo', subtitle: 'Accede a foros, calificaciones y reuniones.' },
 ]
 
 function readAuth() {
@@ -92,6 +102,12 @@ function prev() {
 
 function goTo(i) {
   current.value = i
+}
+
+const coursesSectionEl = ref(null)
+
+function scrollToCourses() {
+  coursesSectionEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 let intervalId = null
@@ -161,9 +177,9 @@ onBeforeUnmount(() => {
 .hero-carousel {
   position: relative;
   width: 100%;
-  min-height: 280px;
+  min-height: 340px;
   overflow: hidden;
-  background: #ffffff;
+  background: linear-gradient(135deg, #003a5c 0%, #004671 45%, #0a6ba8 100%);
 }
 
 .track {
@@ -175,7 +191,7 @@ onBeforeUnmount(() => {
 
 .slide {
   min-width: 100%;
-  min-height: 280px;
+  min-height: 340px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,35 +200,57 @@ onBeforeUnmount(() => {
 
 .hero-card {
   width: 100%;
-  min-height: 140px;
-  background: #fff;
-  border-radius: 24px;
-  padding: 40px 28px;
+  max-width: 760px;
+  background: transparent;
+  padding: 24px 20px;
   text-align: center;
 }
 
 .hero-kicker {
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #004671;
+  color: #ffd97a;
   margin-bottom: 14px;
 }
 
 .title {
   margin: 0;
-  font-size: 28px;
-  line-height: 1.25;
-  font-weight: 700;
-  color: #111827;
+  font-size: 32px;
+  line-height: 1.22;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
 }
 
 .subtitle {
-  margin: 12px 0 0;
-  font-size: 16px;
+  margin: 14px 0 0;
+  font-size: 17px;
   line-height: 1.45;
-  color: rgba(17, 24, 39, 0.72);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hero-cta {
+  margin-top: 22px;
+  min-height: 44px;
+  padding: 0 26px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+  background: #ffd97a;
+  color: #003a5c;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.24);
 }
 
 .tap-zone {
@@ -251,11 +289,15 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   border: 0;
   cursor: pointer;
-  background: rgba(0, 70, 113, 0.25);
+  background: rgba(255, 255, 255, 0.5);
+  transition:
+    width 0.2s ease,
+    background 0.2s ease;
 }
 
 .dot.active {
-  background: #004671;
+  width: 26px;
+  background: #ffd97a;
 }
 
 .courses-section {
@@ -285,6 +327,35 @@ onBeforeUnmount(() => {
 .state-text {
   margin: 10px 0;
   font-size: 16px;
+  text-align: center;
+}
+
+.no-courses {
+  text-align: center;
+  padding: 30px 20px 34px;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.no-courses-icon {
+  font-size: 46px;
+  color: #004671;
+  opacity: 0.85;
+  margin-bottom: 14px;
+}
+
+.no-courses-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.no-courses-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(17, 24, 39, 0.72);
   text-align: center;
 }
 

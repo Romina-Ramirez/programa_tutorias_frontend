@@ -39,8 +39,8 @@
 
           <div class="contact-item contact-item-wrap">
             <FontAwesomeIcon class="icon" :icon="['fas', 'envelope']" />
-            <a class="link-footer inline" href="mailto:tutorias.uce@gmail.com"
-              >tutorias.uce@gmail.com</a
+            <a class="link-footer inline" href="mailto:proyecto-tutorias@uce.edu.ec"
+              >proyecto-tutorias@uce.edu.ec</a
             >
           </div>
         </div>
@@ -51,32 +51,42 @@
           <div class="social">
             <a
               class="social-btn"
-              href="https://facebook.com/"
+              href="https://www.facebook.com/lacentralec"
               target="_blank"
               rel="noopener"
               aria-label="Facebook"
             >
-              <FontAwesomeIcon :icon="['fab', 'square-facebook']" />
+              <FontAwesomeIcon :icon="['fab', 'facebook-f']" />
             </a>
 
             <a
               class="social-btn"
-              href="https://instagram.com/"
+              href="https://www.instagram.com/laucentralec"
               target="_blank"
               rel="noopener"
               aria-label="Instagram"
             >
-              <FontAwesomeIcon :icon="['fab', 'square-instagram']" />
+              <FontAwesomeIcon :icon="['fab', 'instagram']" />
             </a>
 
             <a
               class="social-btn"
-              href="https://x.com/"
+              href="https://x.com/lacentralec"
               target="_blank"
               rel="noopener"
               aria-label="X"
             >
-              <FontAwesomeIcon :icon="['fab', 'square-x-twitter']" />
+              <FontAwesomeIcon :icon="['fab', 'x-twitter']" />
+            </a>
+
+            <a
+              class="social-btn"
+              href="https://www.youtube.com/@lacentralec"
+              target="_blank"
+              rel="noopener"
+              aria-label="YouTube"
+            >
+              <FontAwesomeIcon :icon="['fab', 'youtube']" />
             </a>
           </div>
         </div>
@@ -97,14 +107,14 @@
 .footer-top {
   background: #004671;
   color: #fff;
-  padding: 24px 20px;
+  padding: 20px 20px 14px;
   font-size: 14px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
-  gap: 26px;
+  gap: 24px 40px;
   align-items: start;
   width: 100%;
   max-width: 1200px;
@@ -115,7 +125,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .logo {
@@ -134,14 +144,14 @@
 
 .brand-text {
   margin: 0;
-  line-height: 1.55;
-  text-align: left;
+  line-height: 1.5;
+  text-align: justify;
   color: rgba(255, 255, 255, 0.92);
 }
 
 .col-title {
   font-size: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   text-align: left;
 }
 
@@ -149,9 +159,9 @@
   display: block;
   color: #fff;
   text-decoration: none;
-  margin: 8px 0;
+  margin: 5px 0;
   text-align: left;
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .link-footer:hover {
@@ -167,7 +177,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 10px 0;
+  margin: 7px 0;
 }
 
 .contact-item-wrap {

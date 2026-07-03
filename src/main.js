@@ -17,12 +17,15 @@ import {
   faXmark,
   faMapPin,
   faEnvelope,
+  faBars,
+  faGraduationCap,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
-  faInstagramSquare,
-  faFacebookSquare,
-  faSquareXTwitter,
+  faFacebookF,
+  faInstagram,
+  faXTwitter,
+  faYoutube,
 } from '@fortawesome/free-brands-svg-icons'
 
 library.add(
@@ -34,9 +37,12 @@ library.add(
   faXmark,
   faEnvelope,
   faMapPin,
-  faInstagramSquare,
-  faFacebookSquare,
-  faSquareXTwitter,
+  faBars,
+  faGraduationCap,
+  faFacebookF,
+  faInstagram,
+  faXTwitter,
+  faYoutube,
 )
 
 const app = createApp(App)

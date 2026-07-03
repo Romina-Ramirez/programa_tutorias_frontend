@@ -68,11 +68,11 @@ onMounted(() => {
 
 const infoMessage = computed(() => {
   if (route.query.reason === 'session-expired') {
-    return 'Tu sesión venció. Iniciá sesión nuevamente para continuar.'
+    return 'Tu sesión expiró. Inicia sesión nuevamente para continuar.'
   }
 
   if (route.query.reason === 'auth-required') {
-    return 'Debés iniciar sesión para acceder a esa sección.'
+    return 'Debes iniciar sesión para acceder a esa sección.'
   }
 
   return ''
