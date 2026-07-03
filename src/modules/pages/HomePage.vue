@@ -7,12 +7,9 @@
       <div class="track" :style="trackStyle">
         <div v-for="(s, i) in slides" :key="i" class="slide">
           <div class="hero-card">
-            <div class="hero-kicker">Programa de Tutorías</div>
+            <div class="hero-kicker">Proyecto Tutorías</div>
             <h2 class="title">{{ s.title }}</h2>
             <p v-if="s.subtitle" class="subtitle">{{ s.subtitle }}</p>
-            <button class="hero-cta" type="button" @click="scrollToCourses">
-              Ver cursos disponibles
-            </button>
           </div>
         </div>
       </div>
@@ -30,7 +27,7 @@
       </div>
     </section>
 
-    <section ref="coursesSectionEl" class="courses-section">
+    <section class="courses-section">
       <div class="courses-band">
         <h3 class="courses-title">Cursos disponibles</h3>
       </div>
@@ -67,7 +64,7 @@ import { getAvailableCourses } from '../helpers/studentHelper'
 
 const slides = [
   {
-    title: 'Bienvenido al Programa de Tutorías',
+    title: 'Bienvenido al Proyecto Tutorías',
     subtitle: 'Encuentra acompañamiento académico en un solo lugar.',
   },
   { title: 'Explora cursos y tutores', subtitle: 'Inscríbete fácilmente y sigue tu progreso.' },
@@ -102,12 +99,6 @@ function prev() {
 
 function goTo(i) {
   current.value = i
-}
-
-const coursesSectionEl = ref(null)
-
-function scrollToCourses() {
-  coursesSectionEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 let intervalId = null
@@ -211,7 +202,7 @@ onBeforeUnmount(() => {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #ffd97a;
+  color: #d6b14a;
   margin-bottom: 14px;
 }
 
@@ -229,28 +220,6 @@ onBeforeUnmount(() => {
   font-size: 17px;
   line-height: 1.45;
   color: rgba(255, 255, 255, 0.92);
-}
-
-.hero-cta {
-  margin-top: 22px;
-  min-height: 44px;
-  padding: 0 26px;
-  border-radius: 999px;
-  border: 0;
-  cursor: pointer;
-  background: #ffd97a;
-  color: #003a5c;
-  font-size: 15px;
-  font-weight: 800;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.hero-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.24);
 }
 
 .tap-zone {
@@ -297,11 +266,11 @@ onBeforeUnmount(() => {
 
 .dot.active {
   width: 26px;
-  background: #ffd97a;
+  background: #d6b14a;
 }
 
 .courses-section {
-  padding: 0 18px 36px;
+  padding: 36px 18px;
 }
 
 .courses-band {
@@ -360,7 +329,8 @@ onBeforeUnmount(() => {
 }
 
 .courses-section :deep(.wrap) {
-  padding: 10px 8px 4px;
+  padding: 8px;
+  min-height: 0;
 }
 
 @media (max-width: 768px) {
