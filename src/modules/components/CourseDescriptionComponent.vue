@@ -69,13 +69,13 @@ const isTutor = computed(() => String(props.role) === 'TUTOR')
 }
 
 .course-card--big {
-  padding: 32px 40px;
-  margin-bottom: 20px;
+  padding: 26px 32px;
+  margin-bottom: 18px;
 }
 
 .course-card--small {
-  padding: 32px 40px;
-  min-height: 120px;
+  padding: 24px 32px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -84,7 +84,7 @@ const isTutor = computed(() => String(props.role) === 'TUTOR')
 }
 
 .desc {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.55;
   color: #000;
   text-align: justify;
@@ -93,11 +93,11 @@ const isTutor = computed(() => String(props.role) === 'TUTOR')
 .row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 30px;
+  gap: 24px;
 }
 
 .line {
-  font-size: 18px;
+  font-size: 16px;
   margin: 4px 0;
 }
 .b {
@@ -106,14 +106,14 @@ const isTutor = computed(() => String(props.role) === 'TUTOR')
 
 .side-text {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.45;
   text-align: justify;
 }
 
 .participants-title {
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
   margin-bottom: 10px;
   letter-spacing: 0.3px;
   text-align: center;
@@ -124,7 +124,7 @@ const isTutor = computed(() => String(props.role) === 'TUTOR')
   padding-left: 18px;
   padding-right: 6px;
   text-align: left;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1.4;
 
   max-height: 120px;

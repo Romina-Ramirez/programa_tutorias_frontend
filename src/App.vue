@@ -30,6 +30,7 @@ import { useRouter } from 'vue-router'
 import NavBar from './modules/components/NavBarComponent.vue'
 import Footer from './modules/components/FooterComponent.vue'
 import { clearAuth, readAuth } from './modules/helpers/authSession'
+import { useScrollLock } from './modules/helpers/useScrollLock'
 
 const router = useRouter()
 
@@ -48,6 +49,8 @@ const WARNING_TIME = 2 * 60 * 1000
 let inactivityTimer = null
 let warningTimer = null
 const showInactivityModal = ref(false)
+
+useScrollLock(() => showInactivityModal.value)
 
 function loadAuthFromStorage() {
   try {
@@ -160,7 +163,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .app-shell {
-  min-height: 100vh;
+  min-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
 }
@@ -168,6 +171,12 @@ onBeforeUnmount(() => {
 .app-main {
   flex: 1;
   width: 100%;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    min-height: calc(100vh - 72px);
+  }
 }
 
 .actions-row {

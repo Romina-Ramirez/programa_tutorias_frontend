@@ -345,7 +345,7 @@ onMounted(async () => {
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-  padding: 32px 28px 100px;
+  padding: 32px 28px 76px;
 }
 
 .profile-form {
@@ -589,7 +589,7 @@ onMounted(async () => {
   }
 
   .profile-card {
-    padding: 22px 18px 92px;
+    padding: 22px 18px 76px;
   }
 
   .row {

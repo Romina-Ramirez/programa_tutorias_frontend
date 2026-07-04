@@ -27,7 +27,6 @@
           <div class="th">Nombres</div>
           <div class="th">Apellidos</div>
           <div class="th">Email</div>
-          <div class="th"></div>
         </div>
 
         <article v-for="a in admins" :key="a.id" class="admin-item">
@@ -71,6 +70,15 @@
               <button
                 class="btn-pill"
                 type="button"
+                @click="resendEmailRow(a)"
+                :disabled="busy.resendEmailId === a.id"
+              >
+                {{ busy.resendEmailId === a.id ? 'Enviando...' : 'Reenviar correo' }}
+              </button>
+
+              <button
+                class="btn-pill"
+                type="button"
                 @click="deactivateAdminRow(a)"
                 :disabled="busy.deactivateAdminId === a.id"
               >
@@ -82,6 +90,7 @@
           </div>
 
           <p v-if="rowErrors[a.id]" class="row-error">{{ rowErrors[a.id] }}</p>
+          <p v-if="rowNotices[a.id]" class="row-notice">{{ rowNotices[a.id] }}</p>
         </article>
 
         <p v-if="admins.length === 0" class="empty">No hay administradores registrados.</p>
@@ -105,9 +114,12 @@
             class="modal-input"
             type="text"
             placeholder="Cédula"
+            inputmode="numeric"
+            maxlength="10"
             v-model.trim="addForm.cedula"
             required
             :disabled="busy.addAdmin"
+            @input="addForm.cedula = sanitizeDigits(addForm.cedula).slice(0, 10)"
           />
           <input
             class="modal-input"
@@ -221,8 +233,11 @@
             class="modal-input"
             type="text"
             placeholder="Cédula"
+            inputmode="numeric"
+            maxlength="10"
             v-model.trim="activateCedula"
             :disabled="busy.activateAdmin"
+            @input="activateCedula = sanitizeDigits(activateCedula).slice(0, 10)"
           />
 
           <p v-if="activateError" class="modal-error">{{ activateError }}</p>
@@ -246,7 +261,9 @@ import {
   hardDeleteAdmin as hardDeleteAdminApi,
   activateAdminByIdCard,
   getTutorCountByAdminId,
+  resendAdminEmail,
 } from '../helpers/superAdminHelper'
+import { useScrollLock } from '../helpers/useScrollLock'
 
 function readAuth() {
   try {
@@ -264,6 +281,10 @@ function pick(obj, keys, fallback = '') {
     if (v !== undefined && v !== null) return v
   }
   return fallback
+}
+
+function sanitizeDigits(v) {
+  return String(v ?? '').replace(/[^\d]/g, '')
 }
 
 function mapAdminDto(dto) {
@@ -288,6 +309,7 @@ const loadingAdmins = ref(false)
 const pageError = ref('')
 
 const rowErrors = reactive({})
+const rowNotices = reactive({})
 const editingId = ref(null)
 const editNombreMap = reactive({})
 const editApellidoMap = reactive({})
@@ -295,6 +317,7 @@ const editApellidoMap = reactive({})
 const busy = reactive({
   addAdmin: false,
   updateAdminId: null,
+  resendEmailId: null,
   deleteAdmin: false,
   deactivateAdminId: null,
   activateAdmin: false,
@@ -400,13 +423,18 @@ async function addAdmin() {
 
   const nombre = String(addForm.nombre ?? '').trim()
   const apellido = String(addForm.apellido ?? '').trim()
-  const cedula = String(addForm.cedula ?? '').trim()
+  const cedula = sanitizeDigits(addForm.cedula).slice(0, 10)
   const email = String(addForm.email ?? '')
     .trim()
     .toLowerCase()
 
   if (!cedula || !nombre || !apellido || !email) {
     addError.value = 'Debe completar todos los campos.'
+    return
+  }
+
+  if (cedula.length !== 10) {
+    addError.value = 'La cédula debe tener 10 dígitos.'
     return
   }
 
@@ -513,6 +541,22 @@ async function confirmDelete() {
   }
 }
 
+async function resendEmailRow(a) {
+  if (busy.resendEmailId === a.id) return
+  rowErrors[a.id] = ''
+  rowNotices[a.id] = ''
+
+  try {
+    busy.resendEmailId = a.id
+    await resendAdminEmail(a.id)
+    rowNotices[a.id] = 'Correo reenviado con una nueva contraseña.'
+  } catch (e) {
+    rowErrors[a.id] = e?.response?.data || 'No se pudo reenviar el correo.'
+  } finally {
+    busy.resendEmailId = null
+  }
+}
+
 async function deactivateAdminRow(a) {
   if (busy.deactivateAdminId === a.id) return
   rowErrors[a.id] = ''
@@ -569,6 +613,10 @@ async function confirmActivate() {
   }
 }
 
+const anyModalOpen = computed(() => addOpen.value || deleteOpen.value || activateOpen.value)
+
+useScrollLock(() => anyModalOpen.value)
+
 function closeAllModals() {
   addOpen.value = false
   deleteOpen.value = false
@@ -596,9 +644,12 @@ onBeforeUnmount(() => {
 <style scoped>
 /* Específicos de SuperAdmin */
 
-/* Grid específico para admins (5 columnas) */
+/* Grid específico para admins: Cédula (10 dígitos) con ancho fijo justo,
+   Email con el mayor espacio. Las acciones van en una fila completa debajo,
+   igual que en la vista de Administrador. */
 .table-head {
-  grid-template-columns: 1fr 1fr 1fr 1fr 360px;
+  grid-template-columns: 120px 1fr 1fr 1.6fr;
+  gap: 10px;
   background: #eceff2;
   border-radius: 18px;
 }
@@ -612,7 +663,8 @@ onBeforeUnmount(() => {
 }
 
 .card-table {
-  grid-template-columns: 1fr 1fr 1fr 1fr 360px;
+  grid-template-columns: 120px 1fr 1fr 1.6fr;
+  gap: 10px;
   border-radius: 18px;
   padding: 14px 18px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
@@ -626,6 +678,19 @@ onBeforeUnmount(() => {
 .cell-input:disabled {
   background: #f5f5f5;
   color: #333333;
+}
+
+/* Acciones a lo ancho de toda la fila, debajo de los datos */
+.actions-row {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+  justify-content: space-between;
+}
+
+.actions-row .btn-pill {
+  flex: 1 1 auto;
 }
 
 .info-actions {

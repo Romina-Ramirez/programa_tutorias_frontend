@@ -69,7 +69,7 @@
           />
         </RouterView>
 
-        <div class="btn-wrap">
+        <div v-if="!userId || (isStudent && !isEnrolled)" class="btn-wrap">
           <button v-if="!userId" class="btn" type="button" @click="goLogin">
             Inicia sesión para inscribirte
           </button>
@@ -624,8 +624,9 @@ onMounted(async () => {
 
 .course-area {
   width: 100%;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 20px 40px;
+  padding: 24px 20px 28px;
 }
 
 .btn-wrap {

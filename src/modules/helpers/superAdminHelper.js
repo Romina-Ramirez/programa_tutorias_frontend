@@ -77,3 +77,12 @@ export const activateAdminByIdCard = async (idCard) => {
   })
   return data
 }
+
+/**
+ * POST /superadmin/admins/{adminId}/resend-email
+ * Reenviar el correo con una nueva contraseña al administrador.
+ */
+export const resendAdminEmail = async (adminId) => {
+  const { data } = await api.post(`/superadmin/admins/${adminId}/resend-email`)
+  return data
+}

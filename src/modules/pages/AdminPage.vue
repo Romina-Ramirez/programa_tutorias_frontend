@@ -86,7 +86,7 @@
               type="button"
               @click="toggleExpand(t.id)"
               aria-label="Expandir"
-              :disabled="busy.updateTutorId === t.id || busy.activateTutorId === t.id"
+              :disabled="busy.updateTutorId === t.id || busy.resendEmailId === t.id"
             >
               <span v-if="expandedId === t.id">˄</span>
               <span v-else>˅</span>
@@ -134,17 +134,17 @@
             </button>
 
             <button
-              v-if="!t.activo"
               class="btn-pill"
               type="button"
-              @click="sendVerificationEmail(t)"
-              :disabled="busy.activateTutorId === t.id"
+              @click="resendEmail(t)"
+              :disabled="busy.resendEmailId === t.id"
             >
-              {{ busy.activateTutorId === t.id ? 'Enviando...' : 'Enviar correo de verificación' }}
+              {{ busy.resendEmailId === t.id ? 'Enviando...' : 'Reenviar correo' }}
             </button>
           </div>
 
           <p v-if="tutorErrors[t.id]" class="row-error">{{ tutorErrors[t.id] }}</p>
+          <p v-if="tutorNotices[t.id]" class="row-notice">{{ tutorNotices[t.id] }}</p>
         </article>
 
         <p v-if="tutors.length === 0" class="empty">No hay tutores registrados.</p>
@@ -176,8 +176,11 @@
             class="modal-input"
             type="text"
             placeholder="Cédula"
+            inputmode="numeric"
+            maxlength="10"
             v-model.trim="addTutorForm.cedula"
             :disabled="busy.addTutor"
+            @input="addTutorForm.cedula = sanitizeDigits(addTutorForm.cedula).slice(0, 10)"
           />
           <input
             class="modal-input"
@@ -467,11 +470,15 @@
           <input
             class="modal-input"
             type="number"
-            placeholder="Cupo máximo"
+            placeholder="Cupo máximo (5 - 40)"
             inputmode="numeric"
-            v-model.number="courseForm.cupo"
+            :value="courseForm.cupo"
             :disabled="busy.saveCourse"
-            min="1"
+            min="5"
+            max="40"
+            step="1"
+            @keydown="blockCupoKey"
+            @input="onCupoInput"
           />
 
           <p v-if="courseFormError" class="modal-error">{{ courseFormError }}</p>
@@ -569,9 +576,10 @@
             type="text"
             inputmode="numeric"
             placeholder="Cédula"
+            maxlength="10"
             v-model.trim="activateTutorCedula"
             :disabled="busy.activateTutor"
-            @input="activateTutorCedula = sanitizeDigits(activateTutorCedula)"
+            @input="activateTutorCedula = sanitizeDigits(activateTutorCedula).slice(0, 10)"
           />
 
           <p v-if="activateTutorError" class="modal-error">{{ activateTutorError }}</p>
@@ -601,11 +609,12 @@ import {
   deleteCourse as deleteCourseApi,
   getTutorGeneralReport,
 } from '../helpers/adminHelper'
+import { useScrollLock } from '../helpers/useScrollLock'
 
 const busy = reactive({
   addTutor: false,
   updateTutorId: null,
-  activateTutorId: null,
+  resendEmailId: null,
   deactivateTutorId: null,
   activateTutor: false,
   deleteTutor: false,
@@ -711,6 +720,7 @@ const expandedId = ref(null)
 const editingId = ref(null)
 const editMap = reactive({})
 const tutorErrors = reactive({})
+const tutorNotices = reactive({})
 
 function toggleExpand(id) {
   expandedId.value = expandedId.value === id ? null : id
@@ -781,16 +791,19 @@ async function toggleEdit(t) {
   }
 }
 
-async function sendVerificationEmail(t) {
-  if (busy.activateTutorId) return
+async function resendEmail(t) {
+  if (busy.resendEmailId === t.id) return
+  tutorErrors[t.id] = ''
+  tutorNotices[t.id] = ''
   try {
-    busy.activateTutorId = t.id
+    busy.resendEmailId = t.id
     await activateTutorApi(adminUserId.value, t.id)
     t.activo = true
+    tutorNotices[t.id] = 'Correo reenviado con una nueva contraseña.'
   } catch (e) {
-    tutorErrors[t.id] = e?.response?.data || 'Ocurrió un error. Vuelva a intentarlo más tarde.'
+    tutorErrors[t.id] = e?.response?.data || 'No se pudo reenviar el correo.'
   } finally {
-    busy.activateTutorId = null
+    busy.resendEmailId = null
   }
 }
 
@@ -833,7 +846,7 @@ async function addTutor() {
   const email = String(addTutorForm.email ?? '')
     .trim()
     .toLowerCase()
-  const cedula = String(addTutorForm.cedula ?? '').trim()
+  const cedula = sanitizeDigits(addTutorForm.cedula).slice(0, 10)
   const nombre = String(addTutorForm.nombre ?? '').trim()
   const apellido = String(addTutorForm.apellido ?? '').trim()
   const telefono = sanitizeDigits(addTutorForm.telefono).slice(0, 10)
@@ -846,6 +859,10 @@ async function addTutor() {
   }
   if (!isValidEmail(email)) {
     addTutorError.value = 'El email no es válido.'
+    return
+  }
+  if (cedula.length !== 10) {
+    addTutorError.value = 'La cédula debe tener 10 dígitos.'
     return
   }
   if (telefono.length !== 10) {
@@ -1075,6 +1092,23 @@ const minSelectableDate = computed(() => {
   return d.toISOString().slice(0, 10)
 })
 
+// Cupo máximo: solo enteros, sin negativos, tope 40 al escribir (mínimo 5 se valida al guardar)
+function blockCupoKey(e) {
+  if (['e', 'E', '+', '-', '.', ','].includes(e.key)) e.preventDefault()
+}
+
+function onCupoInput(e) {
+  const digits = String(e.target.value ?? '').replace(/\D/g, '')
+  let n = digits === '' ? null : parseInt(digits, 10)
+  if (n !== null && n > 40) n = 40
+  const prev = courseForm.cupo
+  courseForm.cupo = n
+  // El input es de una sola vía (:value): si el valor recortado coincide con el
+  // que ya tenía el modelo, Vue no re-renderiza y el DOM quedaría desincronizado
+  // (p. ej. mostrando "405" con el modelo en 40). Forzamos la re-sincronización.
+  if (n === prev) e.target.value = n == null ? '' : String(n)
+}
+
 async function saveCourse() {
   if (busy.saveCourse) return
   courseFormError.value = ''
@@ -1096,8 +1130,8 @@ async function saveCourse() {
     courseFormError.value = 'Debe completar nombre, materia, fechas, horario y cupo.'
     return
   }
-  if (courseForm.cupo < 1) {
-    courseFormError.value = 'El cupo debe ser al menos 1.'
+  if (courseForm.cupo < 5 || courseForm.cupo > 40) {
+    courseFormError.value = 'El cupo máximo debe estar entre 5 y 40.'
     return
   }
 
@@ -1228,6 +1262,19 @@ async function loadTutors() {
   }
 }
 
+const anyModalOpen = computed(
+  () =>
+    addTutorOpen.value ||
+    deleteTutorOpen.value ||
+    deleteCourseOpen.value ||
+    coursesOpen.value ||
+    courseFormOpen.value ||
+    reportOpen.value ||
+    activateTutorOpen.value,
+)
+
+useScrollLock(() => anyModalOpen.value)
+
 function closeAllModals() {
   addTutorOpen.value = false
   deleteTutorOpen.value = false
@@ -1266,10 +1313,12 @@ watch(selectedTutorId, () => {
   flex-wrap: wrap;
 }
 
-/* Grid específico para tutores (8 columnas) */
+/* Grid específico para tutores (8 columnas).
+   Cédula y Teléfono son números de 10 dígitos: ancho fijo justo.
+   Email recibe el mayor espacio; Carrera y Horario algo más que los nombres. */
 .table-head {
-  grid-template-columns: 120px 1fr 1fr 1.2fr 100px 1fr 1fr 50px;
-  gap: 12px;
+  grid-template-columns: 120px 1fr 1fr 1.6fr 120px 1.1fr 1.1fr 44px;
+  gap: 10px;
   padding: 8px 12px;
   background: #ececec;
   border-radius: 12px;
@@ -1287,8 +1336,8 @@ watch(selectedTutorId, () => {
 }
 
 .card-table {
-  grid-template-columns: 120px 1fr 1fr 1.2fr 100px 1fr 1fr 50px;
-  gap: 12px;
+  grid-template-columns: 120px 1fr 1fr 1.6fr 120px 1.1fr 1.1fr 44px;
+  gap: 10px;
   border-radius: 12px;
   padding: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
@@ -1491,6 +1540,8 @@ watch(selectedTutorId, () => {
 }
 
 .report-list {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 380px;
   overflow: auto;
   padding-right: 6px;
