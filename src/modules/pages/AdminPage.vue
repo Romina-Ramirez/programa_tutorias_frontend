@@ -91,9 +91,8 @@
               <span v-if="expandedId === t.id">˄</span>
               <span v-else>˅</span>
             </button>
-          </div>
 
-          <div v-if="expandedId === t.id" class="actions-row">
+            <div v-if="expandedId === t.id" class="actions-row">
             <button
               class="btn-pill"
               type="button"
@@ -141,6 +140,7 @@
             >
               {{ busy.resendEmailId === t.id ? 'Enviando...' : 'Reenviar correo' }}
             </button>
+            </div>
           </div>
 
           <p v-if="tutorErrors[t.id]" class="row-error">{{ tutorErrors[t.id] }}</p>
@@ -1313,45 +1313,16 @@ watch(selectedTutorId, () => {
   flex-wrap: wrap;
 }
 
-/* Grid específico para tutores (8 columnas).
-   Cédula y Teléfono son números de 10 dígitos: ancho fijo justo.
-   Email recibe el mayor espacio; Carrera y Horario algo más que los nombres. */
-.table-head {
+/* Solo el layout de columnas es propio de esta vista (8 columnas).
+   El resto del diseño (padding, fondo, radios, celdas) es el compartido global,
+   idéntico al de Super Admin. Cédula/Teléfono con ancho fijo justo para 10 dígitos. */
+.table-head,
+.card-table {
   grid-template-columns: 120px 1fr 1fr 1.6fr 120px 1.1fr 1.1fr 44px;
-  gap: 10px;
-  padding: 8px 12px;
-  background: #ececec;
-  border-radius: 12px;
-  margin-bottom: 12px;
-}
-
-.th {
-  font-weight: 700;
-  font-size: 12px;
-  color: #444;
 }
 
 .tutor-item {
   margin: 0 0 12px;
-}
-
-.card-table {
-  grid-template-columns: 120px 1fr 1fr 1.6fr 120px 1.1fr 1.1fr 44px;
-  gap: 10px;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-}
-
-.cell-input {
-  height: 38px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-}
-
-.cell-input:disabled {
-  background: #f5f5f5;
-  color: #333;
 }
 
 /* Acciones específicas */

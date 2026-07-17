@@ -1,9 +1,7 @@
 <template>
   <section class="meeting">
     <div v-if="meetingUrl" class="meeting-content">
-      <p class="meeting-label">
-        {{ isTutor ? 'Tu enlace de reunión' : 'Enlace de reunión del tutor' }}
-      </p>
+      <p v-if="!isTutor" class="meeting-label">Enlace de reunión del tutor</p>
       <a :href="meetingUrl" target="_blank" rel="noopener noreferrer" class="btn-meeting">
         {{ isTutor ? 'Abrir mi reunión' : 'Unirse a la reunión' }}
       </a>

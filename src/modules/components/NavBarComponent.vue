@@ -117,7 +117,6 @@ const actions = computed(() => {
   if (isTutor.value) {
     return [
       { key: 'mis-cursos', label: 'Mis cursos', to: { name: 'my-courses' }, type: 'link' },
-      { key: 'perfil', label: 'Mi perfil', to: { name: 'tutor-profile' }, type: 'link' },
       { key: 'user-menu', type: 'menu' },
     ]
   }

@@ -1,7 +1,8 @@
 <template>
-  <main class="page-tutor-profile">
+  <main class="page-profile">
     <div class="head">
-      <div class="head-title">Mi Perfil de Tutor</div>
+      <div class="head-title">Mi Perfil</div>
+      <div class="head-title">Mis cursos</div>
     </div>
 
     <div class="grid">
@@ -27,7 +28,7 @@
             </div>
 
             <div class="row">
-              <label class="lbl" for="meetingUrl">Enlace de reunión (Zoom/Meet):</label>
+              <label class="lbl" for="meetingUrl">Enlace de reunión:</label>
               <input
                 id="meetingUrl"
                 class="input"
@@ -36,8 +37,9 @@
                 type="url"
                 placeholder="https://zoom.us/j/..."
               />
-              <small class="hint">Este enlace se mostrará a tus estudiantes en las tutorías</small>
             </div>
+
+            <p class="hint">Este enlace permitirá a tus estudiantes unirse a tus reuniones</p>
 
             <p v-if="profileError" class="error">{{ profileError }}</p>
             <p v-if="profileSuccess" class="success">{{ profileSuccess }}</p>
@@ -65,19 +67,29 @@
         <div class="courses-list">
           <p v-if="loadingCourses" class="loading">Cargando cursos...</p>
           <p v-else-if="coursesError" class="error">{{ coursesError }}</p>
-          <div v-else-if="cursos.length > 0" class="course-cards">
-            <div v-for="c in cursos" :key="c.id" class="course-card" @click="goToCourse(c.id)">
-              <div class="course-title">{{ c.nombre }}</div>
-              <div class="course-info">
-                <span class="badge" :class="normalizeEstado(c.estado)">{{
-                  formatEstado(c.estado)
-                }}</span>
-                <span class="subject">{{ c.materia }}</span>
+
+          <template v-else>
+            <article v-for="c in cursos" :key="c.id" class="course-item">
+              <div class="course-text">
+                <div>{{ (c.nombre ?? '').toUpperCase() }}</div>
+                <div>Materia: {{ c.materia ?? '-' }}</div>
+                <div class="course-estado">{{ formatEstado(c.estado) }}</div>
               </div>
-              <div v-if="c.horario" class="schedule">{{ c.horario }}</div>
+
+              <button
+                class="course-eye-btn"
+                type="button"
+                aria-label="Ver curso"
+                @click="viewCourse(c)"
+              >
+                <FontAwesomeIcon :icon="['fas', 'eye']" />
+              </button>
+            </article>
+
+            <div v-if="cursos.length === 0" class="empty-wrap">
+              <p class="empty">Aún no tienes cursos asignados.</p>
             </div>
-          </div>
-          <p v-else class="empty">No tienes cursos asignados.</p>
+          </template>
         </div>
       </div>
     </div>
@@ -95,10 +107,6 @@ import {
 } from '../helpers/tutorHelper'
 
 const router = useRouter()
-
-function goToCourse(courseId) {
-  router.push({ name: 'course-principal', params: { id: courseId } })
-}
 
 function goChangePassword() {
   router.push({ name: 'change-password' })
@@ -180,7 +188,7 @@ function normalizeEstado(e) {
   if (v === 'INACTIVE') return 'INACTIVE'
 
   if (v === 'ACTIVO') return 'ACTIVE'
-  if (v === 'EN_CURSO' || v === 'ENCURSO' || v === 'EN_CURSO') return 'IN_PROGRESS'
+  if (v === 'EN_CURSO' || v === 'ENCURSO' || v === 'EN_PROGRESO') return 'IN_PROGRESS'
   if (v === 'FINALIZADO' || v === 'INACTIVO') return 'INACTIVE'
 
   return v
@@ -190,7 +198,7 @@ function formatEstado(e) {
   const k = normalizeEstado(e)
   if (k === 'ACTIVE') return 'ACTIVO'
   if (k === 'IN_PROGRESS') return 'EN PROGRESO'
-  if (k === 'INACTIVE') return 'INACTIVO'
+  if (k === 'INACTIVE') return 'FINALIZADO'
   return k
 }
 
@@ -210,7 +218,6 @@ async function loadProfile() {
     perfil.apellido = mapped.apellido
     perfil.meetingUrl = mapped.meetingUrl
   } catch (err) {
-    console.error('Error loading tutor profile:', err)
     profileError.value = 'Error al cargar el perfil'
   } finally {
     loadingProfile.value = false
@@ -225,253 +232,379 @@ async function loadCourses() {
 
   try {
     const dtos = await getTutorCourses(userId.value)
-    cursos.value = dtos.map(mapCourseCardDto)
+    cursos.value = (dtos ?? []).map(mapCourseCardDto)
   } catch (err) {
-    console.error('Error loading tutor courses:', err)
     coursesError.value = 'Error al cargar los cursos'
+    cursos.value = []
   } finally {
     loadingCourses.value = false
   }
 }
 
 async function toggleEdit() {
-  if (editing.value) {
-    // Save
-    savingProfile.value = true
-    profileError.value = ''
-    profileSuccess.value = ''
+  profileError.value = ''
+  profileSuccess.value = ''
 
-    try {
-      await updateTutorProfile(userId.value, {
-        meetingUrl: perfil.meetingUrl,
-      })
-      profileSuccess.value = 'Perfil actualizado correctamente'
-      setTimeout(() => {
-        profileSuccess.value = ''
-      }, 3000)
-    } catch (err) {
-      console.error('Error updating tutor profile:', err)
-      profileError.value = 'Error al actualizar el perfil'
-    } finally {
-      savingProfile.value = false
-    }
+  if (!editing.value) {
+    editing.value = true
+    return
   }
 
-  editing.value = !editing.value
+  savingProfile.value = true
+
+  try {
+    await updateTutorProfile(userId.value, { meetingUrl: perfil.meetingUrl })
+    profileSuccess.value = 'Perfil actualizado correctamente'
+    setTimeout(() => {
+      profileSuccess.value = ''
+    }, 3000)
+    editing.value = false
+  } catch (err) {
+    profileError.value = 'Error al actualizar el perfil'
+  } finally {
+    savingProfile.value = false
+  }
+}
+
+function viewCourse(curso) {
+  sessionStorage.setItem('selectedCurso', JSON.stringify(curso))
+  router.push({ name: 'course-principal', params: { id: curso.id } })
 }
 
 onMounted(() => {
+  auth.value = readAuth()
+
   if (!isTutor.value) {
     redirectByRole(auth.value?.role)
     return
   }
+
   loadProfile()
   loadCourses()
 })
 </script>
 
 <style scoped>
-.page-tutor-profile {
+.page-profile {
   width: 100%;
-  margin: 0 auto;
-  padding: 24px 20px;
+  background: #e8e8e8;
+  min-height: 0;
+  padding-bottom: 20px;
 }
 
 .head {
-  margin-bottom: 24px;
+  background: #ffffff;
+  padding: 22px 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .head-title {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  color: #1a1a1a;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 24px;
+  grid-template-columns: minmax(320px, 0.95fr) minmax(340px, 1.05fr);
+  gap: 22px;
+  width: 100%;
+  padding: 22px 16px 12px;
+  margin: 0 auto;
 }
 
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+.left,
+.right {
+  min-width: 0;
 }
 
 .profile-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 24px 20px;
   position: relative;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  padding: 32px 28px 76px;
 }
 
 .profile-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 16px;
 }
 
 .lbl {
-  font-weight: 500;
-  color: #374151;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+  min-width: 100px;
+  color: #333;
 }
 
 .input {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 0 14px;
+  font-size: 15px;
+  text-align: left;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .input:disabled {
-  background: #f3f4f6;
-  color: #6b7280;
+  opacity: 1;
+  color: #1a1a1a;
+  background: #f9f9f9;
+}
+
+.input:focus {
+  border-color: rgba(0, 70, 113, 0.6);
+  box-shadow: 0 0 0 3px rgba(0, 70, 113, 0.1);
 }
 
 .hint {
-  font-size: 0.8rem;
+  margin: -6px 0 0;
+  font-size: 13px;
   color: #6b7280;
+  line-height: 1.4;
 }
 
 .edit-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 8px;
-  background: #004671;
-  color: white;
-  border: none;
-  border-radius: 6px;
+  right: 20px;
+  bottom: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 0;
   cursor: pointer;
-  transition: background 0.2s;
+  background: #004671;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+}
+
+.edit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .edit-btn:hover:not(:disabled) {
   background: #003d5c;
 }
 
-.edit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.edit-btn:active:not(:disabled) {
+  transform: scale(0.95);
 }
 
 .btn {
-  margin-top: 16px;
-  padding: 10px 16px;
-  background: #fff;
-  color: #004671;
-  border: 1px solid #004671;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 0;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
+  background: #004671;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background 0.2s,
+    transform 0.1s;
 }
 
 .btn:hover {
-  background: #eff6ff;
+  background: #003d5c;
 }
 
-.loading {
-  text-align: center;
-  color: #6b7280;
-  padding: 24px 20px;
-}
-
-.error {
-  color: #dc2626;
-  font-size: 0.9rem;
-}
-
-.success {
-  color: #16a34a;
-  font-size: 0.9rem;
+.btn:active {
+  transform: scale(0.98);
 }
 
 .courses-list {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 24px 20px;
-}
-
-.course-cards {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  width: 100%;
 }
 
-.course-card {
-  padding: 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.course-card:hover {
-  border-color: #004671;
-  box-shadow: 0 2px 8px rgba(0, 70, 113, 0.1);
-}
-
-.course-title {
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 8px;
-}
-
-.course-info {
+.course-item {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 18px 20px;
   display: flex;
-  gap: 8px;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.course-text {
+  flex: 1;
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.course-text div:first-child {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1a1a1a;
   margin-bottom: 4px;
 }
 
-.badge {
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
+.course-estado {
+  font-weight: 700;
+  color: #004671;
+  margin-top: 6px;
 }
 
-.badge.ACTIVE {
-  background: #dcfce7;
-  color: #166534;
+.course-eye-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
+  background: #004671;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  transition:
+    background 0.2s,
+    transform 0.1s;
 }
 
-.badge.IN_PROGRESS {
-  background: #fef3c7;
-  color: #92400e;
+.course-eye-btn:hover {
+  background: #003d5c;
 }
 
-.badge.INACTIVE {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.subject {
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-.schedule {
-  color: #9ca3af;
-  font-size: 0.85rem;
+.course-eye-btn:active {
+  transform: scale(0.95);
 }
 
 .empty {
+  margin: 20px 0;
+  font-size: 16px;
   text-align: center;
-  color: #9ca3af;
-  padding: 24px 20px;
+  color: #666;
+  padding: 30px;
+  background: #f5f5f5;
+  border-radius: 12px;
+}
+
+.empty-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.loading {
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  padding: 30px;
+  color: #666;
+}
+
+.error {
+  margin: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #b00020;
+  text-align: center;
+  padding: 10px;
+  background: rgba(176, 0, 32, 0.06);
+  border-radius: 8px;
+}
+
+.success {
+  margin: 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a7a2f;
+  text-align: center;
+  padding: 10px;
+  background: rgba(10, 122, 47, 0.06);
+  border-radius: 8px;
 }
 
 .btn-mini {
-  font-size: 0.85rem;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .head {
+    padding: 18px 16px;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px 12px 10px;
+  }
+
+  .left,
+  .right {
+    width: 100%;
+  }
+
+  .profile-card {
+    padding: 22px 18px 76px;
+  }
+
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .lbl {
+    text-align: left;
+    min-width: unset;
+  }
+
+  .hint {
+    margin-top: 0;
+  }
+
+  .course-item {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .course-text {
+    text-align: center;
+  }
 }
 </style>

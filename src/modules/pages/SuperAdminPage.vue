@@ -27,6 +27,7 @@
           <div class="th">Nombres</div>
           <div class="th">Apellidos</div>
           <div class="th">Email</div>
+          <div class="th"></div>
         </div>
 
         <article v-for="a in admins" :key="a.id" class="admin-item">
@@ -51,7 +52,18 @@
 
             <input class="cell-input" type="email" disabled :value="a.email" />
 
-            <div class="actions-row">
+            <button
+              class="chev-btn"
+              type="button"
+              @click="toggleExpand(a.id)"
+              aria-label="Expandir"
+              :disabled="busy.updateAdminId === a.id || busy.resendEmailId === a.id"
+            >
+              <span v-if="expandedId === a.id">˄</span>
+              <span v-else>˅</span>
+            </button>
+
+            <div v-if="expandedId === a.id" class="actions-row">
               <button
                 class="btn-pill"
                 type="button"
@@ -311,8 +323,13 @@ const pageError = ref('')
 const rowErrors = reactive({})
 const rowNotices = reactive({})
 const editingId = ref(null)
+const expandedId = ref(null)
 const editNombreMap = reactive({})
 const editApellidoMap = reactive({})
+
+function toggleExpand(id) {
+  expandedId.value = expandedId.value === id ? null : id
+}
 
 const busy = reactive({
   addAdmin: false,
@@ -644,43 +661,19 @@ onBeforeUnmount(() => {
 <style scoped>
 /* Específicos de SuperAdmin */
 
-/* Grid específico para admins: Cédula (10 dígitos) con ancho fijo justo,
-   Email con el mayor espacio. Las acciones van en una fila completa debajo,
-   igual que en la vista de Administrador. */
-.table-head {
-  grid-template-columns: 120px 1fr 1fr 1.6fr;
-  gap: 10px;
-  background: #eceff2;
-  border-radius: 18px;
-}
-
-.th {
-  color: #333;
+/* Solo el layout de columnas es propio (Cédula, Nombres, Apellidos, Email, chevron).
+   Todo el diseño visual (fondo, radios, padding, celdas, chevron) es el compartido,
+   idéntico al de la vista de Administrador. */
+.table-head,
+.card-table {
+  grid-template-columns: 120px 1fr 1fr 1.6fr 44px;
 }
 
 .admin-item {
   margin: 0 0 12px;
 }
 
-.card-table {
-  grid-template-columns: 120px 1fr 1fr 1.6fr;
-  gap: 10px;
-  border-radius: 18px;
-  padding: 14px 18px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-
-.cell-input {
-  border-radius: 14px;
-  border: 1px solid #cccccc;
-}
-
-.cell-input:disabled {
-  background: #f5f5f5;
-  color: #333333;
-}
-
-/* Acciones a lo ancho de toda la fila, debajo de los datos */
+/* Acciones a lo ancho de toda la fila, debajo de los datos (se muestran al desplegar) */
 .actions-row {
   grid-column: 1 / -1;
   margin-top: 10px;
@@ -738,6 +731,10 @@ onBeforeUnmount(() => {
   .cell-input {
     width: 100%;
     text-align: left;
+  }
+
+  .chev-btn {
+    justify-self: end;
   }
 
   .actions-row {

@@ -195,7 +195,7 @@ function formatEstado(e) {
   const k = normalizeEstado(e)
   if (k === 'ACTIVE') return 'ACTIVO'
   if (k === 'IN_PROGRESS') return 'EN PROGRESO'
-  if (k === 'INACTIVE') return 'INACTIVO'
+  if (k === 'INACTIVE') return 'FINALIZADO'
   return k
 }
 

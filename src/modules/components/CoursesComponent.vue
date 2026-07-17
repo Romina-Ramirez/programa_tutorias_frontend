@@ -85,13 +85,13 @@ const router = useRouter()
 const ESTADOS = [
   { key: 'ACTIVE', label: 'Activo' },
   { key: 'IN_PROGRESS', label: 'En progreso' },
-  { key: 'INACTIVE', label: 'Inactivo' },
+  { key: 'INACTIVE', label: 'Finalizado' },
 ]
 
 const STATUS_LABEL_ES = {
   ACTIVE: 'ACTIVO',
   IN_PROGRESS: 'EN PROGRESO',
-  INACTIVE: 'INACTIVO',
+  INACTIVE: 'FINALIZADO',
 }
 
 const search = ref('')
