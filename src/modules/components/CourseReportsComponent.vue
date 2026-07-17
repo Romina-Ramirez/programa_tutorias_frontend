@@ -1,6 +1,12 @@
 <template>
   <section class="reports">
-    <button class="btn-add" type="button" @click="openModal" :disabled="saving">
+    <button
+      v-if="!isInactive"
+      class="btn-add"
+      type="button"
+      @click="openModal"
+      :disabled="saving"
+    >
       {{ saving ? 'Guardando...' : 'Agregar reporte' }}
     </button>
 

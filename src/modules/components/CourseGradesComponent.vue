@@ -24,7 +24,14 @@
 
     <div v-if="isTutor && mode === 'add'" class="topbar">
       <div class="left-controls">
-        <label class="lbl">Nueva calificación</label>
+        <label class="lbl">Actividad:</label>
+        <input
+          class="input"
+          type="text"
+          v-model.trim="sharedActivity"
+          placeholder="Nombre de la actividad"
+          :disabled="saving"
+        />
       </div>
 
       <div class="right-actions">
@@ -80,7 +87,6 @@
             <th class="w-student">Estudiante</th>
             <th class="w-score">Nota</th>
             <th class="w-max">Calificación máxima</th>
-            <th class="w-act">Actividad</th>
             <th class="w-obs">Observaciones</th>
           </tr>
         </thead>
@@ -110,16 +116,6 @@
             </td>
 
             <td class="cell-center b">{{ maxScore }}</td>
-
-            <td class="cell-left">
-              <input
-                class="cell-input cell-input-text"
-                type="text"
-                v-model.trim="draftRows[idx].activity"
-                placeholder="Actividad"
-                :disabled="saving"
-              />
-            </td>
 
             <td class="cell-left">
               <input
@@ -172,6 +168,12 @@ const normalizedStudents = computed(() =>
 const selectedStudentId = ref(null)
 const mode = ref('view')
 const draftRows = ref([])
+const sharedActivity = ref('')
+
+// La actividad se escribe una sola vez arriba y se replica en todas las filas.
+watch(sharedActivity, (v) => {
+  for (const r of draftRows.value) r.activity = v
+})
 
 watch(
   normalizedStudents,
@@ -202,6 +204,7 @@ const rowsToShow = computed(() => {
 
 function startAdd() {
   mode.value = 'add'
+  sharedActivity.value = ''
   draftRows.value = normalizedStudents.value.map((s) => ({
     studentId: s.id,
     student: s.nombre,
@@ -215,6 +218,7 @@ function startAdd() {
 function cancelAdd() {
   mode.value = 'view'
   draftRows.value = []
+  sharedActivity.value = ''
 }
 
 function emitLoadStudentGrades() {
@@ -340,6 +344,7 @@ function saveActivity() {
 
   mode.value = 'view'
   draftRows.value = []
+  sharedActivity.value = ''
 }
 </script>
 

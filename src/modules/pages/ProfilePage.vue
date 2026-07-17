@@ -364,7 +364,9 @@ onMounted(async () => {
   font-size: 15px;
   font-weight: 600;
   text-align: right;
-  min-width: 100px;
+  width: 150px;
+  flex-shrink: 0;
+  white-space: nowrap;
   color: #333;
 }
 
@@ -600,6 +602,7 @@ onMounted(async () => {
 
   .lbl {
     text-align: left;
+    width: auto;
     min-width: unset;
   }
 
