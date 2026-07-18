@@ -482,7 +482,7 @@ async function handleAddComment(payload) {
   try {
     savingComment.value = true
     await addComment(userId.value, payload.forumId, {
-      text: payload.text,
+      comment: payload.text,
     })
     await loadForumComments(payload.forumId)
   } catch (e) {
