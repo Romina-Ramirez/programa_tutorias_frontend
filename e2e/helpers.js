@@ -25,12 +25,14 @@ export function futureDate(daysFromNow) {
   return new Date(Date.now() + daysFromNow * 86400000).toISOString().slice(0, 10)
 }
 
-// Inicia sesión y espera aterrizar en la vista según el rol.
+// Inicia sesión y espera a que el login termine (deja /login) antes de continuar,
+// para que la sesión ya esté guardada si el test navega de inmediato a otra ruta.
 export async function loginAs(page, email, password) {
   await page.goto('/login')
   await page.locator('#email').fill(email)
   await page.locator('#password').fill(password)
   await page.getByRole('button', { name: 'Inicia Sesión' }).click()
+  await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 30_000 })
 }
 
 export { expect }
