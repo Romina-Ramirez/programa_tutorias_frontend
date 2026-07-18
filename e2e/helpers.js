@@ -20,6 +20,11 @@ export function uniqueEmail(rol) {
   return `e2e.${rol}.${Date.now()}@example.com`
 }
 
+// Fecha futura en formato YYYY-MM-DD (para inputs type=date).
+export function futureDate(daysFromNow) {
+  return new Date(Date.now() + daysFromNow * 86400000).toISOString().slice(0, 10)
+}
+
 // Inicia sesión y espera aterrizar en la vista según el rol.
 export async function loginAs(page, email, password) {
   await page.goto('/login')
