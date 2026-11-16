@@ -80,12 +80,13 @@
               </button>
 
               <button
+                v-if="a.activated === false"
                 class="btn-pill"
                 type="button"
                 @click="resendEmailRow(a)"
                 :disabled="busy.resendEmailId === a.id"
               >
-                {{ busy.resendEmailId === a.id ? 'Enviando...' : 'Reenviar correo' }}
+                {{ busy.resendEmailId === a.id ? 'Enviando...' : 'Reenviar enlace' }}
               </button>
 
               <button
@@ -306,6 +307,8 @@ function mapAdminDto(dto) {
     nombre: pick(dto, ['name', 'nombre'], ''),
     apellido: pick(dto, ['lastName', 'apellido'], ''),
     email: pick(dto, ['email'], ''),
+    // false = aún no activa su cuenta (no ha definido contraseña)
+    activated: dto?.activated ?? null,
   }
 }
 
@@ -566,9 +569,9 @@ async function resendEmailRow(a) {
   try {
     busy.resendEmailId = a.id
     await resendAdminEmail(a.id)
-    rowNotices[a.id] = 'Correo reenviado con una nueva contraseña.'
+    rowNotices[a.id] = 'Enlace de activación reenviado al correo del administrador.'
   } catch (e) {
-    rowErrors[a.id] = e?.response?.data || 'No se pudo reenviar el correo.'
+    rowErrors[a.id] = e?.response?.data || 'No se pudo reenviar el enlace.'
   } finally {
     busy.resendEmailId = null
   }

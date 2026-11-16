@@ -32,6 +32,11 @@ const routes = [
     component: () => import('../modules/pages/ResetPaswordPage.vue'),
   },
   {
+    path: '/activar',
+    name: 'activate-account',
+    component: () => import('../modules/pages/ActivateAccountPage.vue'),
+  },
+  {
     path: '/curso/:id',
     component: () => import('../modules/pages/CoursePage.vue'),
     children: [

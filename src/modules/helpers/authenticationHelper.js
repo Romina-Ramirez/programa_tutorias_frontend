@@ -41,3 +41,15 @@ export const changePassword = async (payload) => {
   const { data } = await api.post('/authentication/change-password', payload)
   return data
 }
+
+/**
+ * POST /authentication/activate
+ * Activa una cuenta creada por un administrador: el usuario define su
+ * contraseña con el enlace de un solo uso recibido por correo.
+ * @param {Object} payload { token, password }
+ * @returns {Boolean}
+ */
+export const activateAccount = async (payload) => {
+  const { data } = await api.post('/authentication/activate', payload)
+  return data
+}

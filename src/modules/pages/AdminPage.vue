@@ -133,12 +133,13 @@
             </button>
 
             <button
+              v-if="t.activated === false"
               class="btn-pill"
               type="button"
               @click="resendEmail(t)"
               :disabled="busy.resendEmailId === t.id"
             >
-              {{ busy.resendEmailId === t.id ? 'Enviando...' : 'Reenviar correo' }}
+              {{ busy.resendEmailId === t.id ? 'Enviando...' : 'Reenviar enlace' }}
             </button>
             </div>
           </div>
@@ -681,6 +682,8 @@ function mapTutorDto(dto) {
     carrera,
     horario,
     activo: Boolean(activoRaw),
+    // false = aún no activa su cuenta (no ha definido contraseña)
+    activated: dto?.activated ?? null,
   }
 }
 
@@ -799,9 +802,9 @@ async function resendEmail(t) {
     busy.resendEmailId = t.id
     await activateTutorApi(adminUserId.value, t.id)
     t.activo = true
-    tutorNotices[t.id] = 'Correo reenviado con una nueva contraseña.'
+    tutorNotices[t.id] = 'Enlace de activación reenviado al correo del tutor.'
   } catch (e) {
-    tutorErrors[t.id] = e?.response?.data || 'No se pudo reenviar el correo.'
+    tutorErrors[t.id] = e?.response?.data || 'No se pudo reenviar el enlace.'
   } finally {
     busy.resendEmailId = null
   }

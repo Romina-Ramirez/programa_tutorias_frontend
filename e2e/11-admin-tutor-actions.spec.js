@@ -50,9 +50,10 @@ test.describe('Administrador: acciones sobre un tutor (editar, reenviar correo, 
     await newRow.getByRole('button', { name: 'Guardar' }).click()
     await expect(nombreInput).toHaveValue('E2E Editado', { timeout: 30_000 })
 
-    // b) REENVIAR CORREO
-    await newRow.getByRole('button', { name: 'Reenviar correo' }).click()
-    await expect(newRow).toContainText('Correo reenviado', { timeout: 30_000 })
+    // b) REENVIAR ENLACE DE ACTIVACIÓN (visible porque la cuenta recién creada
+    // sigue pendiente de activación)
+    await newRow.getByRole('button', { name: 'Reenviar enlace' }).click()
+    await expect(newRow).toContainText('Enlace de activación reenviado', { timeout: 30_000 })
 
     // c) DESACTIVAR (la fila desaparece)
     await newRow.getByRole('button', { name: 'Desactivar' }).click()

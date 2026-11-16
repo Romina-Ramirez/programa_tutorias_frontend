@@ -114,6 +114,11 @@ async function onSubmit() {
     return
   }
 
+  if (password.value.trim().length < 8) {
+    error.value = 'La contraseña debe tener al menos 8 caracteres.'
+    return
+  }
+
   if (password.value !== confirmPassword.value) {
     error.value = 'Las contraseñas no coinciden.'
     return

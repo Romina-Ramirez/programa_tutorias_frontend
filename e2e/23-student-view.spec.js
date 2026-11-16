@@ -3,7 +3,7 @@ import { loginAs } from './helpers'
 
 // Estudiante sembrado inscrito en un curso EN PROGRESO con calificaciones.
 const STUDENT = 'mateo.suarez@example.com'
-const COURSE = 'INGLÉS INTERMEDIO'
+const COURSE = 'CÁLCULO DIFERENCIAL'
 
 test.describe('Estudiante: vistas de solo lectura del curso', () => {
   test('ve calificaciones, foro y reunión de un curso en progreso', async ({ page }) => {
